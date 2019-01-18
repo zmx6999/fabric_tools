@@ -1,0 +1,33 @@
+{
+  "domain": "trace.com",
+  "orderers": [
+    "orderer0",
+    "orderer1"
+  ],
+  "kafkas": [
+    "kafka0",
+    "kafka1",
+    "kafka2",
+    "kafka3"
+  ],
+  "peer_orgs": [
+    {
+      "org_name": "OrgDairy",
+      "peer_count": 2,
+      "user_count": 1
+    },
+    {
+      "org_name": "OrgProcess",
+      "peer_count": 2,
+      "user_count": 1
+    },
+    {
+      "org_name": "OrgSell",
+      "peer_count": 2,
+      "user_count": 1
+    }
+  ],
+  "genesis_profile": "ThreeOrgsOrdererGenesis",
+  "channel_profile": "ThreeOrgsChannel",
+  "channel": "trace"
+}

@@ -1,0 +1,216 @@
+{
+  "domain": "trace.com",
+  "zookeepers": [
+    {
+      "host_name": "zookeeper0",
+      "ports": [
+        "2181",
+        "2888",
+        "3888"
+      ],
+      "zoo_my_id": "1",
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+    },
+    {
+      "host_name": "zookeeper1",
+      "ports": [
+        "2181",
+        "2888",
+        "3888"
+      ],
+      "zoo_my_id": "2",
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+    },
+    {
+      "host_name": "zookeeper2",
+      "ports": [
+        "2181",
+        "2888",
+        "3888"
+      ],
+      "zoo_my_id": "3",
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+    }
+  ],
+  "kafkas": [
+    {
+      "host_name": "kafka0",
+      "ports": [
+        "9092"
+      ],
+      "broker_id": "0",
+      "zookeepers": [
+        "zookeeper0:2181",
+        "zookeeper1:2181",
+        "zookeeper2:2181"
+      ]
+    },
+    {
+      "host_name": "kafka1",
+      "ports": [
+        "9092"
+      ],
+      "broker_id": "1",
+      "zookeepers": [
+        "zookeeper0:2181",
+        "zookeeper1:2181",
+        "zookeeper2:2181"
+      ]
+    },
+    {
+      "host_name": "kafka2",
+      "ports": [
+        "9092"
+      ],
+      "broker_id": "2",
+      "zookeepers": [
+        "zookeeper0:2181",
+        "zookeeper1:2181",
+        "zookeeper2:2181"
+      ]
+    },
+    {
+      "host_name": "kafka3",
+      "ports": [
+        "9092"
+      ],
+      "broker_id": "3",
+      "zookeepers": [
+        "zookeeper0:2181",
+        "zookeeper1:2181",
+        "zookeeper2:2181"
+      ]
+    }
+  ],
+  "orderers": [
+    {
+      "orderer_name": "orderer0",
+      "kafka_brokers": [
+        "kafka0:9092",
+        "kafka1:9092",
+        "kafka2:9092",
+        "kafka3:9092"
+      ],
+      "ports": [
+        "7050:7050"
+      ]
+    },
+    {
+      "orderer_name": "orderer1",
+      "kafka_brokers": [
+        "kafka0:9092",
+        "kafka1:9092",
+        "kafka2:9092",
+        "kafka3:9092"
+      ],
+      "ports": [
+        "8050:7050"
+      ]
+    }
+  ],
+  "cas": [
+    {
+      "peer_org_name": "OrgDairy",
+      "ports": [
+        "7054:7054"
+      ],
+      "admin_name": "admin",
+      "admin_password": "adminpw"
+    },
+    {
+      "peer_org_name": "OrgProcess",
+      "ports": [
+        "8054:7054"
+      ],
+      "admin_name": "admin",
+      "admin_password": "adminpw"
+    },
+    {
+      "peer_org_name": "OrgSell",
+      "ports": [
+        "9054:7054"
+      ],
+      "admin_name": "admin",
+      "admin_password": "adminpw"
+    }
+  ],
+  "peers": [
+    {
+      "peer_name": "peer0",
+      "org_name": "OrgDairy",
+      "ports": [
+        "7051:7051",
+        "7052:7052",
+        "7053:7053"
+      ]
+    },
+    {
+      "peer_name": "peer1",
+      "org_name": "OrgDairy",
+      "ports": [
+        "8051:7051",
+        "8052:7052",
+        "8053:7053"
+      ]
+    },
+    {
+      "peer_name": "peer0",
+      "org_name": "OrgProcess",
+      "ports": [
+        "9051:7051",
+        "9052:7052",
+        "9053:7053"
+      ]
+    },
+    {
+      "peer_name": "peer1",
+      "org_name": "OrgProcess",
+      "ports": [
+        "10051:7051",
+        "10052:7052",
+        "10053:7053"
+      ]
+    },
+    {
+      "peer_name": "peer0",
+      "org_name": "OrgSell",
+      "ports": [
+        "11051:7051",
+        "11052:7052",
+        "11053:7053"
+      ]
+    },
+    {
+      "peer_name": "peer1",
+      "org_name": "OrgSell",
+      "ports": [
+        "12051:7051",
+        "12052:7052",
+        "12053:7053"
+      ]
+    }
+  ],
+  "clis": [
+    {
+      "cli_name": "cli",
+      "core_peer_name": "peer0",
+      "core_peer_org": "OrgDairy",
+      "depends": [
+        "peer0.orgdairy.trace.com",
+        "peer1.orgdairy.trace.com",
+        "peer0.orgprocess.trace.com",
+        "peer1.orgprocess.trace.com"
+      ]
+    }
+  ],
+  "hosts": [
+    "orderer0.trace.com:127.0.0.1",
+    "orderer1.trace.com:127.0.0.1",
+    "peer0.orgdairy.trace.com:127.0.0.1",
+    "peer1.orgdairy.trace.com:127.0.0.1",
+    "peer0.orgprocess.trace.com:127.0.0.1",
+    "peer1.orgprocess.trace.com:127.0.0.1",
+    "peer0.orgsell.trace.com:127.0.0.1",
+    "peer1.orgsell.trace.com:127.0.0.1"
+  ]
+}
