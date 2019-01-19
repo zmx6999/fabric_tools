@@ -12,6 +12,8 @@ function findGoPackageInstalled() {
 
 if [ $# -lt 1 ]; then echo "usage: docker_compose_cfggen.sh COMPOSE_PROJECT_NAME"; exit 1; fi
 
+if [ ! -e docker_compose_cfggen.go ]; then echo "docker_compose_cfggen.go not found"; exit 1; fi
+
 COMPOSE_PROJECT_NAME=$1
 
 if [ -e .env ]; then rm -f .env; fi
@@ -21,4 +23,4 @@ echo "${env}" >> .env
 findGoPackageInstalled github.com/sparrc/go-ping
 if [ $? -ne 0 ]; then echo "go get github.com/sparrc/go-ping"; go get github.com/sparrc/go-ping; fi
 sysctl -w net.ipv4.ping_group_range="0   2147483647"
-go run generateDockerComposeConfig.go
+go run docker_compose_cfggen.go

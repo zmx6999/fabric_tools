@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"strings"
 	"fmt"
-	"log"
 )
 
 type ChaincodeOrderer struct {
@@ -149,26 +148,40 @@ installAndInstantiateChaincode `+config.ChaincodeName+` `+config.ChaincodeVersio
 }
 
 func main()  {
-	var configPath string
-	if len(os.Args)>1 {
-		configPath=os.Args[1]
-	} else {
-		configPath="chaincode.json"
+	if len(os.Args)<3 {
+		panic(`Invalid arguments.Usage: chaincode.sh <option> CONFIG_PATH
+options:
+    -i instantiate chaincode
+    -u upgrade chaincode
+`)
 	}
 
+	configPath:=os.Args[2]
 	config:=ChaincodeConfig{}
 	err:=loadChaincodeConfig(configPath,&config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
+	}
+
+	mode:=os.Args[1]
+	switch mode {
+	case "-i":
+		mode="instantiate"
+		break
+	case "-u":
+		mode="upgrade"
+		break
+	default:
+		panic(`Invalid arguments.Usage: chaincode.sh <option> CONFIG_PATH
+options:
+    -i instantiate chaincode
+    -u upgrade chaincode
+`)
+		break
 	}
 	fmt.Println("generating _chaincode.sh")
-	err=generateChaincodeSh("_chaincode.sh",config,"instantiate")
+	err=generateChaincodeSh("_chaincode.sh",config,mode)
 	if err!=nil {
-		log.Fatal(err)
-	}
-	fmt.Println("generating _chaincode_upgrade.sh")
-	err=generateChaincodeSh("_chaincode_upgrade.sh",config,"upgrade")
-	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

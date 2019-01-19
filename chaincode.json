@@ -2,7 +2,7 @@
   "domain": "trace.com",
   "channel_name": "trace",
   "chaincode_name": "dairy",
-  "chaincode_version": "1.5",
+  "chaincode_version": "1.0",
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"

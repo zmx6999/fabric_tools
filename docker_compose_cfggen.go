@@ -1,12 +1,11 @@
 package main
 
 import (
-		"os"
+	"os"
 	"strings"
 	"errors"
 	"encoding/json"
 	"fmt"
-	"log"
 	"github.com/sparrc/go-ping"
 	"time"
 )
@@ -27,7 +26,6 @@ type Zookeeper struct {
 
 type Kafka struct {
 	HostName string `json:"host_name"`
-	Ports []string `json:"ports"`
 	BrokerID string `json:"broker_id"`
 	Zookeepers []string `json:"zookeepers"`
 }
@@ -167,7 +165,7 @@ func caConfigStr(config DockerComposeConfig) (string,error) {
     ports:`
 		for _,port:=range ca.Ports{
 			_str+=`
-      - "`+port+`"`
+      - "`+port+`:7054"`
 		}
 		_str+=`
     command: sh -c 'fabric-ca-server start -b `+ca.AdminName+`:`+ca.AdminPassword+` -d'
@@ -183,6 +181,10 @@ func caConfigStr(config DockerComposeConfig) (string,error) {
 func ordererConfigStr(config DockerComposeConfig) string {
 	str:=``
 	for _,orderer:=range config.Orderers{
+		kafkaBrokers:=[]string{}
+		for _,broker:=range orderer.KafkaBrokers{
+			kafkaBrokers=append(kafkaBrokers,broker+":9092")
+		}
 		_str:=`
   `+orderer.OrdererName+`.`+config.Domain+`:
     container_name: `+orderer.OrdererName+`.`+config.Domain+`
@@ -203,7 +205,7 @@ func ordererConfigStr(config DockerComposeConfig) string {
       - ORDERER_KAFKA_RETRY_SHORTINTERVAL=1s
       - ORDERER_KAFKA_RETRY_SHORTTOTAL=30s
       - ORDERER_KAFKA_VERBOSE=true
-      - ORDERER_KAFKA_BROKERS=[`+strings.Join(orderer.KafkaBrokers,",")+`]
+      - ORDERER_KAFKA_BROKERS=[`+strings.Join(kafkaBrokers,",")+`]
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
     volumes:
@@ -213,7 +215,7 @@ func ordererConfigStr(config DockerComposeConfig) string {
     ports:`
 		for _,port:=range orderer.Ports{
 			_str+=`
-      - "`+port+`"`
+      - "`+port+`:7050"`
 		}
 		_str+=`
     extra_hosts:`
@@ -230,6 +232,7 @@ func ordererConfigStr(config DockerComposeConfig) string {
 
 func peerConfigStr(config DockerComposeConfig) string {
 	str:=``
+	innerPorts:=[]string{"7051","7052","7053"}
 	for _,peer:=range config.Peers{
 		_str:=`
   `+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`:
@@ -260,9 +263,9 @@ func peerConfigStr(config DockerComposeConfig) string {
       - ./crypto-config/peerOrganizations/`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/peers/`+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/peers/`+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/tls:/etc/hyperledger/fabric/tls
     ports:`
-		for _,port:=range peer.Ports{
+		for k,port:=range peer.Ports{
 			_str+=`
-      - "`+port+`"`
+      - "`+port+`:`+innerPorts[k]+`"`
 		}
 		_str+=`
     extra_hosts:`
@@ -328,7 +331,7 @@ func generateZookeeper(dstPath string,config DockerComposeConfig) error {
 version: '2'
 
 services:`
-
+	innerPorts:=[]string{"2181","2888","3888"}
 	for _,zookeeper:=range config.Zookeepers{
 		_str:=`
   `+zookeeper.HostName+`:
@@ -337,9 +340,9 @@ services:`
     image: hyperledger/fabric-zookeeper
     restart: always
     ports:`
-		for _,port:=range zookeeper.Ports{
+		for k,port:=range zookeeper.Ports{
 			_str+=`
-      - "`+port+`"`
+      - "`+port+`:`+innerPorts[k]+`"`
 		}
 		_str+=`
     environment:
@@ -386,11 +389,8 @@ services:`
       - KAFKA_MIN_INSYNC_REPLICAS=2
       - KAFKA_DEFAULT_REPLICATION_FACTOR=3
       - KAFKA_ZOOKEEPER_CONNECT=`+strings.Join(kafka.Zookeepers,",")+`
-    ports:`
-		for _,port:=range kafka.Ports{
-			_str+=`
-      - "`+port+`"`
-		}
+    ports:
+      - "9092:9092"`
 		_str+=`
     extra_hosts:`
 		for _,host:=range config.Hosts{
@@ -470,27 +470,27 @@ func updateHosts(dstPath string,config DockerComposeConfig) error {
 
 func main()  {
 	config:=DockerComposeConfig{}
-	err:=loadDockerComposeConfig("docker-compose.json",&config)
+	err:=loadDockerComposeConfig("docker-compose_cfggen.json",&config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fmt.Println("generating docker-compose.yaml")
 	err=generateDockerComposeConfig("docker-compose.yaml",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fmt.Println("generating zookeeper.yaml")
 	err=generateZookeeper("zookeeper.yaml",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fmt.Println("generating kafka.yaml")
 	err=generateKafka("kafka.yaml",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	err=updateHosts("/etc/hosts",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

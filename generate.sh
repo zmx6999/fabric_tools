@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ ! -e generateConfig.go ]; then echo "generateConfig.go not found"; exit 1; fi
+if [ ! -e generate.go ]; then echo "generate.go not found"; exit 1; fi
 
-go run generateConfig.go
+go run generate.go
 if [ $? -ne 0 ]; then exit 1; fi
 
 chmod +x _generate.sh

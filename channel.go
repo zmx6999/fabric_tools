@@ -4,7 +4,6 @@ import (
 	"os"
 	"encoding/json"
 	"strings"
-	"log"
 	"fmt"
 )
 
@@ -168,19 +167,24 @@ updateAnchorPeers `+config.ChannelName+` `+config.Orderer.OrdererName+`.`+config
 }
 
 func main()  {
+	if len(os.Args)<2 {
+		panic("Invalid arguments.Usage: channel.go CONFIG_PATH")
+	}
+
+	configPath:=os.Args[1]
 	config:=ChannelConfig{}
-	err:=loadChannelConfig("channel.json",&config)
+	err:=loadChannelConfig(configPath,&config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fmt.Println("generating _channel.sh")
 	err=generateChannelSh("_channel.sh",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	fmt.Println("generating _anchor.sh")
 	err=generateAnchorSh("_anchor.sh",config)
 	if err!=nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

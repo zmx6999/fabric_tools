@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 	"strconv"
-	"log"
 	"fmt"
-)
+		)
 
 type Config struct {
 	Domain string `json:"domain"`
@@ -19,33 +18,16 @@ type Config struct {
 	Channel string `json:"channel"`
 }
 
+type ConfigKafka struct {
+	HostName string `json:"host_name"`
+	Port string `json:"port"`
+}
+
 type PeerOrg struct {
 	OrgName string `json:"org_name"`
 	PeerCount int `json:"peer_count"`
 	UserCount int `json:"user_count"`
-}
-
-func main()  {
-	config:=Config{}
-	err:=loadConfig("config.json",&config)
-	if err!=nil {
-		log.Fatal(err)
-	}
-	fmt.Println("generating crypto-config.yaml")
-	err=generateCryptoConfig("crypto-config.yaml",config)
-	if err!=nil {
-		log.Fatal(err)
-	}
-	fmt.Println("generating configtx.yaml")
-	err=generateConfigtx("configtx.yaml",config)
-	if err!=nil {
-		log.Fatal(err)
-	}
-	fmt.Println("generating _generate.sh")
-	err=generateShell("_generate.sh",config)
-	if err!=nil {
-		log.Fatal(err)
-	}
+	AnchorPeers []string `json:"anchor_peers"`
 }
 
 func loadConfig(configPath string,config *Config) error {
@@ -128,9 +110,12 @@ Organizations:`
         Name: `+peerOrg.OrgName+`MSP
         ID: `+peerOrg.OrgName+`MSP
         MSPDir: crypto-config/peerOrganizations/`+strings.ToLower(peerOrg.OrgName)+`.`+config.Domain+`/msp
-        AnchorPeers:
-            - Host: peer0.`+strings.ToLower(peerOrg.OrgName)+`.`+config.Domain+`
+        AnchorPeers:`
+		for _,anchorPeer:=range peerOrg.AnchorPeers{
+			_str+=`
+            - Host: `+anchorPeer+`.`+strings.ToLower(peerOrg.OrgName)+`.`+config.Domain+`
               Port: 7051`
+		}
 		str+=_str
 	}
 
@@ -279,4 +264,27 @@ generate `+config.Channel+` `+config.GenesisProfile+` `+config.ChannelProfile
 
 	file.Write([]byte(str))
 	return nil
+}
+
+func main()  {
+	config:=Config{}
+	err:=loadConfig("generate.json",&config)
+	if err!=nil {
+		panic(err)
+	}
+	fmt.Println("generating crypto-config.yaml")
+	err=generateCryptoConfig("crypto-config.yaml",config)
+	if err!=nil {
+		panic(err)
+	}
+	fmt.Println("generating configtx.yaml")
+	err=generateConfigtx("configtx.yaml",config)
+	if err!=nil {
+		panic(err)
+	}
+	fmt.Println("generating _generate.sh")
+	err=generateShell("_generate.sh",config)
+	if err!=nil {
+		panic(err)
+	}
 }

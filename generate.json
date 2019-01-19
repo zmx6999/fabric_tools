@@ -14,17 +14,26 @@
     {
       "org_name": "OrgDairy",
       "peer_count": 2,
-      "user_count": 1
+      "user_count": 1,
+      "anchor_peers": [
+        "peer0"
+      ]
     },
     {
       "org_name": "OrgProcess",
       "peer_count": 2,
-      "user_count": 1
+      "user_count": 1,
+      "anchor_peers": [
+        "peer0"
+      ]
     },
     {
       "org_name": "OrgSell",
       "peer_count": 2,
-      "user_count": 1
+      "user_count": 1,
+      "anchor_peers": [
+        "peer0"
+      ]
     }
   ],
   "genesis_profile": "ThreeOrgsOrdererGenesis",
