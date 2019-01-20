@@ -1,6 +1,6 @@
 # Hyperledger fabric+kafka+docker-compose Multi-host Deployment
 
-## Assume that we have 4 hosts A,B,C,D,and each host's IP and roles are as following:
+## Assume that we have 4 hosts A,B,C,D and each host's IP and roles are as following:
 ```
 A 139.180.137.89 zookeeper0 kafka0 orderer0.trace.com
 
