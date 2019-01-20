@@ -455,7 +455,7 @@ docker-compose -f docker-compose.yaml up -d
 ```
 It will start service including orderer0.trace.com on host A,orderer1.trace.com on host B,peer0.orgdairy.trace.com,peer1.orgdairy.trace.com,peer0.orgprocess.trace.com,peer1.orgprocess.trace.com,ca_OrgDairy,ca_OrgProcess,cli on host C,peer0.orgsell.trace.com,peer1.orgsell.trace.com,ca_OrgSell on host D.
 
-4.Create a channel,and make each peer node join the channel,and update anchor peers
+## 4.Create a channel,and make each peer node join the channel,and update anchor peers
 
 (a)Copy channel.go,channel.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190116/network of host C and enter the directory.
 
