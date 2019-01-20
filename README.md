@@ -1042,7 +1042,9 @@ chmod +x dairy_test.sh
 ```
 
 (i)Invoke the chaincode process.
+
 Create and edit process_test.sh as following:
+```
 #!/bin/bash
  
 docker exec cli peer chaincode invoke -n process -C trace -c '{"args":["invoke","set","process101","dairy101"]}' --peerAddresses peer0.orgprocess.trace.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer0.orgprocess.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
