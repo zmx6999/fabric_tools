@@ -15,7 +15,7 @@ D 198.13.46.60 kafka3 peer0.orgsell.trace.com peer0.orgsell.trace.com ca_OrgSell
 
 (a)Download fabric_tools from https://github.com/zmx6999/fabric_tools
 
-(b)Copy init.sh in downloaded fabric_tools to each host of A,B,C,D,and then execute
+(b)Copy init.sh in downloaded fabric_tools to each host of A,B,C,D and execute
 ```
 ./init.sh 190116
 ```
