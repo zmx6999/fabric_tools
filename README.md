@@ -2,13 +2,13 @@
 
 ## Assume that we have 4 hosts A,B,C,D and each host's IP and roles are as following:
 ```
-A 139.180.137.89 zookeeper0 kafka0 orderer0.trace.com
+A 139.180.138.179 zookeeper0 kafka0 orderer0.house.com
 
-B 139.180.209.250 zookeeper1 kafka1 orderer1.trace.com
+B 45.77.251.25 zookeeper1 kafka1 orderer1.house.com
 
-C 139.180.137.0 zookeeper2 kafka2 peer0.orgdairy.trace.com peer1.orgdairy.trace.com peer0.orgprocess.trace.com peer1.orgprocess.trace.com ca_OrgDairy ca_OrgProcess cli
+C 45.77.250.9 zookeeper2 kafka2 peer0.orgauth.house.com peer1.orgauth.house.com peer0.orgcert.house.com peer1.orgcert.house.com ca_OrgAuth ca_OrgCert cli
 
-D 198.13.46.60 kafka3 peer0.orgsell.trace.com peer0.orgsell.trace.com ca_OrgSell
+D 139.180.146.33 kafka3 peer0.orgcredit.house.com peer1.orgcredit.house.com ca_OrgCredit
 ```
 
 ## 1.Prepare
@@ -17,18 +17,18 @@ D 198.13.46.60 kafka3 peer0.orgsell.trace.com peer0.orgsell.trace.com ca_OrgSell
 
 (b)Copy init.sh in downloaded fabric_tools to each host of A,B,C,D and execute
 ```
-./init.sh 190116
+./init.sh 190216
 ```
-It will install docker,docker-compose and go,and download fabric.git,fabric-samples and docker images related to fabric,and create a  directory /root/fabric/scripts/fabric-samples/190116/network on each host.
+It will install docker,docker-compose and go,and download fabric.git,fabric-samples and docker images related to fabric,and create a directory /root/fabric/scripts/fabric-samples/190216/network on each host.
 
-## 2.Genarate crypto-config files,genesis block and files related to anchor peers
+## 2.Genarate crypto-config files,genesis block and channels' configuration files
 
-(a)Copy generate.json,generate.go,generate.sh in downloaded fabric_tools to the directory /root/fabric/scripts/fabric-samples/190116/network of host C and enter the directory.
+(a)Copy generate.json,generate.go,generate.sh in downloaded fabric_tools to the directory /root/fabric/scripts/fabric-samples/190216/network of host C and enter the directory.
 
 (b)Edit generate.json as following:
 ```
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "orderers": [
     "orderer0",
     "orderer1"
@@ -41,7 +41,7 @@ It will install docker,docker-compose and go,and download fabric.git,fabric-samp
   ],
   "peer_orgs": [
     {
-      "org_name": "OrgDairy",
+      "org_name": "OrgAuth",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -49,7 +49,7 @@ It will install docker,docker-compose and go,and download fabric.git,fabric-samp
       ]
     },
     {
-      "org_name": "OrgProcess",
+      "org_name": "OrgCert",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -57,7 +57,7 @@ It will install docker,docker-compose and go,and download fabric.git,fabric-samp
       ]
     },
     {
-      "org_name": "OrgSell",
+      "org_name": "OrgCredit",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -66,8 +66,26 @@ It will install docker,docker-compose and go,and download fabric.git,fabric-samp
     }
   ],
   "genesis_profile": "ThreeOrgsOrdererGenesis",
-  "channel_profile": "ThreeOrgsChannel",
-  "channel": "trace"
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        "OrgAuth"
+      ]
+    },
+    {
+      "channel_name": "cert",
+      "orgs": [
+        "OrgCert"
+      ]
+    },
+    {
+      "channel_name": "credit",
+      "orgs": [
+        "OrgCredit"
+      ]
+    }
+  ]
 }
 ```
 
@@ -76,24 +94,23 @@ It will install docker,docker-compose and go,and download fabric.git,fabric-samp
 chmod +x generate.sh
 ./generate.sh
 ```
-It will generate crypto-config files,genesis.block,channel.tx and DairyOrgMSPanchors.tx,ProcessOrgMSPanchors.tx,SellOrgMSPanchors.tx which are related to anchor peers.
+It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx which are channel config files.
 
 ## 3.Generate docker-compose configuration files and start services including zookeeper,kafka,orderer,peer,ca,cli
 
-(a)Copy docker_compose_cfggen.json,docker_compose_cfggen.go,docker_compose_cfggen.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190116/network of each host of A,B,C,D and enter the directory.
+(a)Copy docker_compose_cfggen.json,docker_compose_cfggen.go,docker_compose_cfggen.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190216/network of each host of A,B,C,D and enter the directory.
 
 (b)Edit docker_compose_cfggen.json on host A as following:
 ```
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "zookeepers": [
     {
       "host_name": "zookeeper0",
-      // outer ports
       "ports": [
-        "2181", // The first item corresponds to the inner port 2181
-        "2888", // The second item corresponds to the inner port 2888
-        "3888" // The third item corresponds to the inner port 3888
+        "2181",
+        "2888",
+        "3888"
       ],
       "zoo_my_id": "1",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -119,43 +136,41 @@ It will generate crypto-config files,genesis.block,channel.tx and DairyOrgMSPanc
         "kafka2",
         "kafka3"
       ],
-      // outer ports
       "ports": [
-        "7050" // corresponds to the inner port 7050
+        "7050"
       ]
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.137.89",
-    "kafka0:139.180.137.89",
-    "orderer0.trace.com:139.180.137.89",
-    "zookeeper1:139.180.209.250",
-    "kafka1:139.180.209.250",
-    "orderer1.trace.com:139.180.209.250",
-    "zookeeper2:139.180.137.0",
-    "kafka2:139.180.137.0",
-    "peer0.orgdairy.trace.com:139.180.137.0",
-    "peer1.orgdairy.trace.com:139.180.137.0",
-    "peer0.orgprocess.trace.com:139.180.137.0",
-    "peer1.orgprocess.trace.com:139.180.137.0",
-    "kafka3:198.13.46.60",
-    "peer0.orgsell.trace.com:198.13.46.60",
-    "peer1.orgsell.trace.com:198.13.46.60"
+    "zookeeper0:139.180.138.179",
+    "kafka0:139.180.138.179",
+    "orderer0.house.com:139.180.138.179",
+    "zookeeper1:45.77.251.25",
+    "kafka1:45.77.251.25",
+    "orderer1.house.com:45.77.251.25",
+    "zookeeper2:45.77.250.9",
+    "kafka2:45.77.250.9",
+    "peer0.orgauth.house.com:45.77.250.9",
+    "peer1.orgauth.house.com:45.77.250.9",
+    "peer0.orgcert.house.com:45.77.250.9",
+    "peer1.orgcert.house.com:45.77.250.9",
+    "kafka3:139.180.146.33",
+    "peer0.orgcredit.house.com:139.180.146.33",
+    "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
 ```
 Edit docker_compose_cfggen.json on host B as following:
 ```
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "zookeepers": [
     {
       "host_name": "zookeeper1",
-      // outer ports
       "ports": [
-        "2181", // The first item corresponds to the inner port 2181
-        "2888", // The second item corresponds to the inner port 2888
-        "3888" // The third item corresponds to the inner port 3888
+        "2181",
+        "2888",
+        "3888"
       ],
       "zoo_my_id": "2",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -181,50 +196,47 @@ Edit docker_compose_cfggen.json on host B as following:
         "kafka2",
         "kafka3"
       ],
-      // outer ports
       "ports": [
-        "8050" // corresponds to the inner port 7050
+        "8050"
       ]
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.137.89",
-    "kafka0:139.180.137.89",
-    "orderer0.trace.com:139.180.137.89",
-    "zookeeper1:139.180.209.250",
-    "kafka1:139.180.209.250",
-    "orderer1.trace.com:139.180.209.250",
-    "zookeeper2:139.180.137.0",
-    "kafka2:139.180.137.0",
-    "peer0.orgdairy.trace.com:139.180.137.0",
-    "peer1.orgdairy.trace.com:139.180.137.0",
-    "peer0.orgprocess.trace.com:139.180.137.0",
-    "peer1.orgprocess.trace.com:139.180.137.0",
-    "kafka3:198.13.46.60",
-    "peer0.orgsell.trace.com:198.13.46.60",
-    "peer1.orgsell.trace.com:198.13.46.60"
+    "zookeeper0:139.180.138.179",
+    "kafka0:139.180.138.179",
+    "orderer0.house.com:139.180.138.179",
+    "zookeeper1:45.77.251.25",
+    "kafka1:45.77.251.25",
+    "orderer1.house.com:45.77.251.25",
+    "zookeeper2:45.77.250.9",
+    "kafka2:45.77.250.9",
+    "peer0.orgauth.house.com:45.77.250.9",
+    "peer1.orgauth.house.com:45.77.250.9",
+    "peer0.orgcert.house.com:45.77.250.9",
+    "peer1.orgcert.house.com:45.77.250.9",
+    "kafka3:139.180.146.33",
+    "peer0.orgcredit.house.com:139.180.146.33",
+    "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
 ```
 Edit docker_compose_cfggen.json on host C as following:
 ```
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "cas": [
     {
-      "peer_org_name": "OrgDairy",
-      // outer ports
+      "peer_org_name": "OrgAuth",
       "ports": [
-        "7054" // corresponds to the inner port 7054
+        "7054"
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
     },
     {
-      "peer_org_name": "OrgProcess",
-      // outer ports
+      "peer_org_name": "OrgCert",
       "ports": [
-        "8054" // corresponds to the inner port 7054
+        "8054"
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
@@ -233,11 +245,10 @@ Edit docker_compose_cfggen.json on host C as following:
   "zookeepers": [
     {
       "host_name": "zookeeper2",
-      // outer ports
       "ports": [
-        "2181", // The first item corresponds to the inner port 2181
-        "2888", // The second item corresponds to the inner port 2888
-        "3888" // The third item corresponds to the inner port 3888
+        "2181",
+        "2888",
+        "3888"
       ],
       "zoo_my_id": "3",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -257,42 +268,38 @@ Edit docker_compose_cfggen.json on host C as following:
   "peers": [
     {
       "peer_name": "peer0",
-      "org_name": "OrgDairy",
-      // outer ports
+      "org_name": "OrgAuth",
       "ports": [
-        "7051", // The first item corresponds to the inner port 7051
-        "7052", // The second item corresponds to the inner port 7052
-        "7053" // The third item corresponds to the inner port 7053
+        "7051",
+        "7052",
+        "7053"
       ]
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgDairy",
-      // outer ports
+      "org_name": "OrgAuth",
       "ports": [
-        "8051", // The first item corresponds to the inner port 7051
-        "8052", // The second item corresponds to the inner port 7052
-        "8053" // The third item corresponds to the inner port 7053
+        "8051",
+        "8052",
+        "8053"
       ]
     },
     {
       "peer_name": "peer0",
-      "org_name": "OrgProcess",
-      // outer ports
+      "org_name": "OrgCert",
       "ports": [
-        "9051", // The first item corresponds to the inner port 7051
-        "9052", // The second item corresponds to the inner port 7052
-        "9053" // The third item corresponds to the inner port 7053
+        "9051",
+        "9052",
+        "9053"
       ]
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgProcess",
-      // outer ports
+      "org_name": "OrgCert",
       "ports": [
-        "10051", // The first item corresponds to the inner port 7051
-        "10052", // The second item corresponds to the inner port 7052
-        "10053" // The third item corresponds to the inner port 7053
+        "10051",
+        "10052",
+        "10053"
       ]
     }
   ],
@@ -300,44 +307,43 @@ Edit docker_compose_cfggen.json on host C as following:
     {
       "cli_name": "cli",
       "core_peer_name": "peer0",
-      "core_peer_org": "OrgDairy",
+      "core_peer_org": "OrgAuth",
       "depends": [
-        "peer0.orgdairy.trace.com",
-        "peer1.orgdairy.trace.com",
-        "peer0.orgprocess.trace.com",
-        "peer1.orgprocess.trace.com"
+        "peer0.orgauth.house.com",
+        "peer1.orgauth.house.com",
+        "peer0.orgcert.house.com",
+        "peer1.orgcert.house.com"
       ]
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.137.89",
-    "kafka0:139.180.137.89",
-    "orderer0.trace.com:139.180.137.89",
-    "zookeeper1:139.180.209.250",
-    "kafka1:139.180.209.250",
-    "orderer1.trace.com:139.180.209.250",
-    "zookeeper2:139.180.137.0",
-    "kafka2:139.180.137.0",
-    "peer0.orgdairy.trace.com:139.180.137.0",
-    "peer1.orgdairy.trace.com:139.180.137.0",
-    "peer0.orgprocess.trace.com:139.180.137.0",
-    "peer1.orgprocess.trace.com:139.180.137.0",
-    "kafka3:198.13.46.60",
-    "peer0.orgsell.trace.com:198.13.46.60",
-    "peer1.orgsell.trace.com:198.13.46.60"
+    "zookeeper0:139.180.138.179",
+    "kafka0:139.180.138.179",
+    "orderer0.house.com:139.180.138.179",
+    "zookeeper1:45.77.251.25",
+    "kafka1:45.77.251.25",
+    "orderer1.house.com:45.77.251.25",
+    "zookeeper2:45.77.250.9",
+    "kafka2:45.77.250.9",
+    "peer0.orgauth.house.com:45.77.250.9",
+    "peer1.orgauth.house.com:45.77.250.9",
+    "peer0.orgcert.house.com:45.77.250.9",
+    "peer1.orgcert.house.com:45.77.250.9",
+    "kafka3:139.180.146.33",
+    "peer0.orgcredit.house.com:139.180.146.33",
+    "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
 ```
 Edit docker_compose_cfggen.json on host D as following:
 ```
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "cas": [
     {
-      "peer_org_name": "OrgSell",
-      // outer ports
+      "peer_org_name": "OrgCredit",
       "ports": [
-        "9054" // corresponds to the inner port 7054
+        "9054"
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
@@ -357,41 +363,39 @@ Edit docker_compose_cfggen.json on host D as following:
   "peers": [
     {
       "peer_name": "peer0",
-      "org_name": "OrgSell",
-      // outer ports
+      "org_name": "OrgCredit",
       "ports": [
-        "11051", // The first item corresponds to the inner port 7051
-        "11052", // The second item corresponds to the inner port 7052
-        "11053" // The third item corresponds to the inner port 7053
+        "11051",
+        "11052",
+        "11053"
       ]
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgSell",
-      // outer ports
+      "org_name": "OrgCredit",
       "ports": [
-        "12051", // The first item corresponds to the inner port 7051
-        "12052", // The second item corresponds to the inner port 7052
-        "12053" // The third item corresponds to the inner port 7053
+        "12051",
+        "12052",
+        "12053"
       ]
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.137.89",
-    "kafka0:139.180.137.89",
-    "orderer0.trace.com:139.180.137.89",
-    "zookeeper1:139.180.209.250",
-    "kafka1:139.180.209.250",
-    "orderer1.trace.com:139.180.209.250",
-    "zookeeper2:139.180.137.0",
-    "kafka2:139.180.137.0",
-    "peer0.orgdairy.trace.com:139.180.137.0",
-    "peer1.orgdairy.trace.com:139.180.137.0",
-    "peer0.orgprocess.trace.com:139.180.137.0",
-    "peer1.orgprocess.trace.com:139.180.137.0",
-    "kafka3:198.13.46.60",
-    "peer0.orgsell.trace.com:198.13.46.60",
-    "peer1.orgsell.trace.com:198.13.46.60"
+    "zookeeper0:139.180.138.179",
+    "kafka0:139.180.138.179",
+    "orderer0.house.com:139.180.138.179",
+    "zookeeper1:45.77.251.25",
+    "kafka1:45.77.251.25",
+    "orderer1.house.com:45.77.251.25",
+    "zookeeper2:45.77.250.9",
+    "kafka2:45.77.250.9",
+    "peer0.orgauth.house.com:45.77.250.9",
+    "peer1.orgauth.house.com:45.77.250.9",
+    "peer0.orgcert.house.com:45.77.250.9",
+    "peer1.orgcert.house.com:45.77.250.9",
+    "kafka3:139.180.146.33",
+    "peer0.orgcredit.house.com:139.180.146.33",
+    "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
 ```
@@ -400,473 +404,378 @@ Edit docker_compose_cfggen.json on host D as following:
 
 Execute on host A
 ```
-cd /root/fabric/scripts/fabric-samples/190116/network
+cd /root/fabric/scripts/fabric-samples/190216/network
 mkdir channel-artifacts
-mkdir -p crypto-config/ordererOrganizations/trace.com/orderers
+mkdir -p crypto-config/ordererOrganizations/house.com/orderers
 ```
-Copy crypto-config files and genesis.block from host C to host A,executing in the directory /root/fabric/scripts/fabric-samples/190116/network of host C
+Copy crypto-config files and genesis.block from host C to host A,executing in the directory /root/fabric/scripts/fabric-samples/190216/network of host C
 ```
-scp channel-artifacts/genesis.block root@139.180.137.89:/root/fabric/scripts/fabric-samples/190116/network/channel-artifacts
-scp -r crypto-config/ordererOrganizations/trace.com/orderers/orderer0.trace.com root@139.180.137.89:/root/fabric/scripts/fabric-samples/190116/network/crypto-config/ordererOrganizations/trace.com/orderers
+scp channel-artifacts/genesis.block root@139.180.138.179:/root/fabric/scripts/fabric-samples/190216/network/channel-artifacts
+scp -r crypto-config/ordererOrganizations/house.com/orderers/orderer0.house.com root@139.180.138.179:/root/fabric/scripts/fabric-samples/190216/network/crypto-config/ordererOrganizations/house.com/orderers
 ```
 Execute on host B
 ```
-cd /root/fabric/scripts/fabric-samples/190116/network
+cd /root/fabric/scripts/fabric-samples/190216/network
 mkdir channel-artifacts
-mkdir -p crypto-config/ordererOrganizations/trace.com/orderers
+mkdir -p crypto-config/ordererOrganizations/house.com/orderers
 ```
-Copy crypto-config files and genesis.block from host C to host B,executing in the directory /root/fabric/scripts/fabric-samples/190116/network of host C
+Copy crypto-config files and genesis.block from host C to host B,executing in the directory /root/fabric/scripts/fabric-samples/190216/network of host C
 ```
-scp channel-artifacts/genesis.block root@139.180.209.250:/root/fabric/scripts/fabric-samples/190116/network/channel-artifacts
-scp -r crypto-config/ordererOrganizations/trace.com/orderers/orderer1.trace.com root@139.180.209.250:/root/fabric/scripts/fabric-samples/190116/network/crypto-config/ordererOrganizations/trace.com/orderers
+scp channel-artifacts/genesis.block root@45.77.251.25:/root/fabric/scripts/fabric-samples/190216/network/channel-artifacts
+scp -r crypto-config/ordererOrganizations/house.com/orderers/orderer1.house.com root@45.77.251.25:/root/fabric/scripts/fabric-samples/190216/network/crypto-config/ordererOrganizations/house.com/orderers
 ```
 Execute on host D
 ```
-cd /root/fabric/scripts/fabric-samples/190116/network
-mkdir -p crypto-config/peerOrganizations/orgsell.trace.com
+cd /root/fabric/scripts/fabric-samples/190216/network
+mkdir -p crypto-config/peerOrganizations/orgcredit.house.com
 ```
-Copy crypto-config files from host C to host D,executing in the directory /root/fabric/scripts/fabric-samples/190116/network of host C
+Copy crypto-config files from host C to host D,executing in the directory /root/fabric/scripts/fabric-samples/190216/network of host C
 ```
-scp -r crypto-config/peerOrganizations/orgsell.trace.com/peers root@198.13.46.60:/root/fabric/scripts/fabric-samples/190116/network/crypto-config/peerOrganizations/orgsell.trace.com
-scp -r crypto-config/peerOrganizations/orgsell.trace.com/ca root@198.13.46.60:/root/fabric/scripts/fabric-samples/190116/network/crypto-config/peerOrganizations/orgsell.trace.com
+scp -r crypto-config/peerOrganizations/orgcredit.house.com/peers root@139.180.146.33:/root/fabric/scripts/fabric-samples/190216/network/crypto-config/peerOrganizations/orgcredit.house.com
+scp -r crypto-config/peerOrganizations/orgcredit.house.com/ca root@139.180.146.33:/root/fabric/scripts/fabric-samples/190216/network/crypto-config/peerOrganizations/orgcredit.house.com
 ```
 
 (d)Execute on each host of A,B,C,D
 ```
-cd /root/fabric/scripts/fabric-samples/190116/network
+cd /root/fabric/scripts/fabric-samples/190216/network
 chmod +x docker_compose_cfggen.sh
-./docker_compose_cfggen.sh trace # trace is COMPOSE_PROJECT_NAME
+./docker_compose_cfggen.sh house # house is COMPOSE_PROJECT_NAME
 ```
 It will generate docker-compose configuration files including zookeeper.yaml,kafka.yaml,docker-compose.yaml.
 
-(e)Start zookeeper on each host of A,B,C,executing in the directory /root/fabric/scripts/fabric-samples/190116/network of each host
+(e)Start zookeeper on each host of A,B,C,executing in the directory /root/fabric/scripts/fabric-samples/190216/network of each host
 ```
 docker-compose -f zookeeper.yaml up -d
 ```
 
-(f)Start kafka on each host of A,B,C,D,executing in the directory /root/fabric/scripts/fabric-samples/190116/network of each host
+(f)Start kafka on each host of A,B,C,D,executing in the directory /root/fabric/scripts/fabric-samples/190216/network of each host
 ```
 docker-compose -f kafka.yaml up -d
 ```
 
-(g)Execute in the directory /root/fabric/scripts/fabric-samples/190116/network of each host of A,B,C,D
+(g)Execute in the directory /root/fabric/scripts/fabric-samples/190216/network of each host of A,B,C,D
 ```
 docker-compose -f docker-compose.yaml up -d
 ```
-It will start service including orderer0.trace.com on host A,orderer1.trace.com on host B,peer0.orgdairy.trace.com,peer1.orgdairy.trace.com,peer0.orgprocess.trace.com,peer1.orgprocess.trace.com,ca_OrgDairy,ca_OrgProcess,cli on host C,peer0.orgsell.trace.com,peer1.orgsell.trace.com,ca_OrgSell on host D.
+It will start service including orderer0.house.com on host A,orderer1.house.com on host B,peer0.orgauth.house.com,peer1.orgauth.house.com,peer0.orgcert.house.com,peer1.orgcert.house.com,ca_OrgAuth,ca_OrgCert,cli on host C,peer0.orgcredit.house.com,peer1.orgcredit.house.com,ca_OrgCredit on host D.
 
-## 4.Create a channel,and make each peer node join the channel,and update anchor peers
+## 4.Create channels,and make each peer node join different channels
 
-(a)Copy channel.go,channel.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190116/network of host C and enter the directory.
+(a)Copy channel.go,channel.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190216/network of host C and enter the directory.
 
-(b)Create and edit trace.json as following:
+(b)Create and edit channel.json as following:
 ```
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        {
+          "org_name": "OrgAuth",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "8051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "channel_name": "cert",
+      "orgs": [
+        {
+          "org_name": "OrgCert",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "9051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "10051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "9051"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "channel_name": "credit",
+      "orgs": [
+        {
+          "org_name": "OrgCredit",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "11051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "12051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "11051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "cli_name": "cli",
-  "channel_orgs": [
-    {
-      "org_name": "OrgDairy",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "8051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgProcess",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "9051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "10051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "9051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        }
-      ]
-    }
-  ]
+  "cli_name": "cli"
 }
 ```
 
 (c)Execute
 ```
 chmod +x channel.sh
-./channel.sh trace.json
+./channel.sh channel.json
 ```
-It will create a channel named trace,make each peer node join the channel and update anchor peers.
+It will create a channel named auth which includes peer nodes in OrgAuth,a channel named cert which includes peer nodes in OrgCert and a channel named credit which includes peer nodes in OrgCredit.
 
 ## 5.Edit chaincodes
 
-(a)Create a directory named chaincode in the directory /root/fabric/scripts/fabric-samples/190116 of host C and enter the created chaincode directory.Then created 3 directories named dairy(stores the chaincode of dairies),process(stores the chaincode of process factories),sell(stores the chaincode of sell organizations) respectively.
+(a)Create a directory named chaincode in the directory /root/fabric/scripts/fabric-samples/190216 of host C and enter the created chaincode directory.Then created 3 directories named auth(stores the chaincode of renter authority),cert(stores the certificate of landlords),credit(stores the chaincode of renters' credit) respectively.
 
-(b)Create and edit dairy.go in the created directory dairy as following:
+(b)Create and edit auth.go in the created directory auth as following:
 ```
 package main
- 
+
 import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"errors"
 	"fmt"
-	"time"
-	"encoding/json"
 )
- 
-type DairyChaincode struct {
- 
-}
- 
-func (dc *DairyChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return shim.Success(nil)
-}
- 
-func (dc *DairyChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	_,args:=stub.GetFunctionAndParameters()
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	fn:=args[0]
-	if fn=="set" {
-		return dc.set(stub,args[1:])
-	} else if fn=="get" {
-		return dc.get(stub,args[1:])
-	} else if fn=="history" {
-		return dc.history(stub,args[1:])
-	}
-	return shim.Error("METHOD NOT FOUND")
-}
- 
-func (dc *DairyChaincode) set(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	err=stub.PutState(args[0],[]byte(args[1]))
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(nil)
-}
- 
-func (dc *DairyChaincode) get(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	data,err:=stub.GetState(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
-func (dc *DairyChaincode) history(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	iter,err:=stub.GetHistoryForKey(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	defer iter.Close()
-	var list []string
-	for iter.HasNext() {
-		item,err:=iter.Next()
-		if err!=nil {
-			return shim.Error(err.Error())
-		}
-		v:=fmt.Sprintf("%s|%s",time.Unix(item.Timestamp.Seconds,0).Format("2006-01-02 15:04:05"),item.Value)
-		list=append(list,v)
-	}
-	data,err:=json.Marshal(list)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
+
 func main()  {
-	shim.Start(new(DairyChaincode))
+	shim.Start(new(AuthChaincode))
 }
- 
-func checkArgs(args []string,n int) error {
-	if len(args)<n {
-		return errors.New(fmt.Sprintf("%d argument(s) required",n))
+
+type AuthChaincode struct {
+
+}
+
+func (this *AuthChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+	return shim.Success(nil)
+}
+
+func (this *AuthChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	fn,args:=stub.GetFunctionAndParameters()
+	if fn=="check" {
+		return this.check(stub,args)
+	} else if fn=="add" {
+		return this.add(stub,args)
+	}
+	return shim.Error("Method doesn't exist")
+}
+
+func (this *AuthChaincode) check(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,2)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	name:=args[1]
+	data,err:=stub.GetState(id)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	if data==nil {
+		return shim.Success([]byte("false"))
+	}
+	if string(data)==name {
+		return shim.Success([]byte("true"))
+	} else {
+		return shim.Success([]byte("false"))
+	}
+}
+
+func (this *AuthChaincode) add(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,2)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	name:=args[1]
+	err=stub.PutState(id,[]byte(name))
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(nil)
+}
+
+func checkArgsNum(args []string,n int) error {
+	if len(args)!=n {
+		return errors.New(fmt.Sprintf("%d parameter(s) required",n))
 	}
 	return nil
 }
 ```
-Create and edit process.go in the created directory process as following:
+Create and edit cert.go in the created directory cert as following:
 ```
 package main
- 
+
 import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"errors"
 	"fmt"
-	"time"
-	"encoding/json"
 )
- 
-type ProcessChaincode struct {
- 
-}
- 
-func (pc *ProcessChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return shim.Success(nil)
-}
- 
-func (pc *ProcessChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	_,args:=stub.GetFunctionAndParameters()
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	fn:=args[0]
-	if fn=="set" {
-		return pc.set(stub,args[1:])
-	} else if fn=="get" {
-		return pc.get(stub,args[1:])
-	} else if fn=="history" {
-		return pc.history(stub,args[1:])
-	}
-	return shim.Error("METHOD NOT FOUND")
-}
- 
-func (pc *ProcessChaincode) set(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	err=stub.PutState(args[0],[]byte(args[1]))
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(nil)
-}
- 
-func (pc *ProcessChaincode) get(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	data,err:=stub.GetState(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
-func (pc *ProcessChaincode) history(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	iter,err:=stub.GetHistoryForKey(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	defer iter.Close()
-	var list []string
-	for iter.HasNext() {
-		item,err:=iter.Next()
-		if err!=nil {
-			return shim.Error(err.Error())
-		}
-		v:=fmt.Sprintf("%s|%s",time.Unix(item.Timestamp.Seconds,0).Format("2006-01-02 15:04:05"),item.Value)
-		list=append(list,v)
-	}
-	data,err:=json.Marshal(list)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
+
 func main()  {
-	shim.Start(new(ProcessChaincode))
+	shim.Start(new(CertChaincode))
 }
- 
-func checkArgs(args []string,n int) error {
-	if len(args)<n {
-		return errors.New(fmt.Sprintf("%d argument(s) required",n))
+
+type CertChaincode struct {
+
+}
+
+func (this *CertChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+	return shim.Success(nil)
+}
+
+func (this *CertChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	fn,args:=stub.GetFunctionAndParameters()
+	if fn=="check" {
+		return this.check(stub,args)
+	} else if fn=="add" {
+		return this.add(stub,args)
+	}
+	return shim.Error("Method doesn't exist")
+}
+
+func (this *CertChaincode) check(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,2)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	name:=args[1]
+	data,err:=stub.GetState(id)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	if data==nil {
+		return shim.Success([]byte("false"))
+	}
+	if string(data)==name {
+		return shim.Success([]byte("true"))
+	} else {
+		return shim.Success([]byte("false"))
+	}
+}
+
+func (this *CertChaincode) add(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,2)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	name:=args[1]
+	err=stub.PutState(id,[]byte(name))
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(nil)
+}
+
+func checkArgsNum(args []string,n int) error {
+	if len(args)!=n {
+		return errors.New(fmt.Sprintf("%d parameter(s) required",n))
 	}
 	return nil
 }
 ```
-Create and edit sell.go in the created directory sell as following:
+Create and edit credit.go in the created directory credit as following:
 ```
 package main
- 
+
 import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"errors"
 	"fmt"
-	"time"
-	"encoding/json"
-	"strings"
 )
- 
-type SellChaincode struct {
- 
-}
- 
-func (sc *SellChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return shim.Success(nil)
-}
- 
-func (sc *SellChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	_,args:=stub.GetFunctionAndParameters()
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	fn:=args[0]
-	if fn=="set" {
-		return sc.set(stub,args[1:])
-	} else if fn=="get" {
-		return sc.get(stub,args[1:])
-	} else if fn=="history" {
-		return sc.history(stub,args[1:])
-	}
-	return shim.Error("METHOD NOT FOUND")
-}
- 
-func (sc *SellChaincode) set(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,2)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	err=stub.PutState(args[0],[]byte(args[1]))
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(nil)
-}
- 
-func (sc *SellChaincode) get(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	data,err:=stub.GetState(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
-func (sc *SellChaincode) history(stub shim.ChaincodeStubInterface,args []string) peer.Response {
-	err:=checkArgs(args,1)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	iter,err:=stub.GetHistoryForKey(args[0])
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	defer iter.Close()
-	var list []map[string]interface{}
-	for iter.HasNext() {
-		item,err:=iter.Next()
-		if err!=nil {
-			return shim.Error(err.Error())
-		}
-		v:=fmt.Sprintf("%s|%s",time.Unix(item.Timestamp.Seconds,0).Format("2006-01-02 15:04:05"),item.Value)
-		m:=map[string]interface{}{
-			"info": v,
-		}
- 
-		process:=strings.Split(v,"|")[1]
-		response:=stub.InvokeChaincode("process",[][]byte{[]byte("invoke"),[]byte("history"),[]byte(process)},"trace")
-		if response.Status!=shim.OK {
-			return shim.Error(response.String())
-		}
-		var _processList []string
-		err=json.Unmarshal(response.Payload,&_processList)
-		if err!=nil {
-			return shim.Error(err.Error())
-		}
- 
-		var processList []map[string]interface{}
-		for _,_v:=range _processList{
-			dairy:=strings.Split(_v,"|")[1]
-			_response:=stub.InvokeChaincode("dairy",[][]byte{[]byte("invoke"),[]byte("history"),[]byte(dairy)},"trace")
-			if _response.Status!=shim.OK {
-				return shim.Error(_response.String())
-			}
-			var dairyList []string
-			err=json.Unmarshal(_response.Payload,&dairyList)
-			_m:=map[string]interface{}{
-				"info": _v,
-				"trace": dairyList,
-			}
-			processList=append(processList,_m)
-		}
-		m["trace"]=processList
-		list=append(list,m)
-	}
-	data,err:=json.Marshal(list)
-	if err!=nil {
-		return shim.Error(err.Error())
-	}
-	return shim.Success(data)
-}
- 
+
 func main()  {
-	shim.Start(new(SellChaincode))
+	shim.Start(new(CreditChaincode))
 }
- 
-func checkArgs(args []string,n int) error {
-	if len(args)<n {
-		return errors.New(fmt.Sprintf("%d argument(s) required",n))
+
+type CreditChaincode struct {
+
+}
+
+func (this *CreditChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+	return shim.Success(nil)
+}
+
+func (this *CreditChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	fn,args:=stub.GetFunctionAndParameters()
+	if fn=="check" {
+		return this.check(stub,args)
+	} else if fn=="add" {
+		return this.add(stub,args)
+	}
+	return shim.Error("Method doesn't exist")
+}
+
+func (this *CreditChaincode) check(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,1)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	data,err:=stub.GetState(id)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	if data==nil {
+		return shim.Success([]byte("false"))
+	}
+	return shim.Success(data)
+}
+
+func (this *CreditChaincode) add(stub shim.ChaincodeStubInterface,args []string) peer.Response {
+	err:=checkArgsNum(args,2)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	id:=args[0]
+	credit:=args[1]
+	err=stub.PutState(id,[]byte(credit))
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(nil)
+}
+
+func checkArgsNum(args []string,n int) error {
+	if len(args)!=n {
+		return errors.New(fmt.Sprintf("%d parameter(s) required",n))
 	}
 	return nil
 }
@@ -874,210 +783,179 @@ func checkArgs(args []string,n int) error {
 
 ## 6.Install,instantiate and invoke chaincodes
 
-(a)Copy chaincode.go,chaincode.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190116/network of host C and enter the directory.
+(a)Copy chaincode.go,chaincode.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190216/network of host C and enter the directory.
 
-(b)Create and edit dairy.json as following:
+(b)Create and edit auth.json as following:
 ```
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
-  "chaincode_name": "dairy",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        {
+          "org_name": "OrgAuth",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "8051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "chaincode_name": "auth",
   "chaincode_version": "1.0",
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "endorse": "AND ('OrgDairyMSP.member')",
-  "cli_name": "cli",
-  "chaincode_orgs": [
-    {
-      "org_name": "OrgDairy",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "8051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ]
-    }
-  ]
+  "endorse": "AND ('OrgAuthMSP.member')",
+  "cli_name": "cli"
 }
 ```
 
 (c)Execute
 ```
 chmod +x chaincode.sh
-./chaincode.sh -i dairy.json
+./chaincode.sh -i auth.json
 ```
-It will install and instantiate the chaincode dairy.
+It will install and instantiate the chaincode auth.
 
-(d)Create and edit process.json as following:
+(d)Create and edit cert.json as following:
 ```
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
-  "chaincode_name": "process",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "cert",
+      "orgs": [
+        {
+          "org_name": "OrgCert",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "9051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "10051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "chaincode_name": "cert",
   "chaincode_version": "1.0",
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "endorse": "AND ('OrgProcessMSP.member')",
-  "cli_name": "cli",
-  "chaincode_orgs": [
-    {
-      "org_name": "OrgProcess",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "9051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "10051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ]
-    }
-  ]
+  "endorse": "AND ('OrgCertMSP.member')",
+  "cli_name": "cli"
 }
 ```
 
 (e)Execute
 ```
-./chaincode.sh -i process.json
+./chaincode.sh -i cert.json
 ```
-It will install and instantiate the chaincode process.
+It will install and instantiate the chaincode cert.
 
-(f)Create and edit sell.json as following:
+(f)Create and edit credit.json as following:
 ```
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
-  "chaincode_name": "sell",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "credit",
+      "orgs": [
+        {
+          "org_name": "OrgCredit",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "11051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "12051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "chaincode_name": "credit",
   "chaincode_version": "1.0",
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "endorse": "AND ('OrgSellMSP.member')",
-  "cli_name": "cli",
-  "chaincode_orgs": [
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ]
-    }
-  ]
+  "endorse": "AND ('OrgCreditMSP.member')",
+  "cli_name": "cli"
 }
 ```
 
 (g)Execute
 ```
-./chaincode.sh -i sell.json
+./chaincode.sh -i credit.json
 ```
-It will install and instantiate the chaincode sell.
+It will install and instantiate the chaincode credit.
 
-(h)Invoke the chaincode dairy.
+(h)Invoke the chaincode auth.
 
-Create and edit dairy_test.sh as following:
+Create and edit auth_test.sh as following:
 ```
 #!/bin/bash
- 
-docker exec cli peer chaincode invoke -n dairy -C trace -c '{"args":["invoke","set","dairy101","info101"]}' --peerAddresses peer0.orgdairy.trace.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer0.orgdairy.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgdairy.trace.com:8051 -e CORE_PEER_LOCALMSPID=OrgDairyMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/users/Admin@orgdairy.trace.com/msp cli peer chaincode query -n dairy -C trace -c '{"args":["invoke","get","dairy101"]}'
- 
-docker exec cli peer chaincode invoke -n dairy -C trace -c '{"args":["invoke","set","dairy102","info102"]}' --peerAddresses peer0.orgdairy.trace.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer0.orgdairy.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgdairy.trace.com:8051 -e CORE_PEER_LOCALMSPID=OrgDairyMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/users/Admin@orgdairy.trace.com/msp cli peer chaincode query -n dairy -C trace -c '{"args":["invoke","get","dairy102"]}'
- 
-docker exec cli peer chaincode invoke -n dairy -C trace -c '{"args":["invoke","set","dairy101","info103"]}' --peerAddresses peer0.orgdairy.trace.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer0.orgdairy.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgdairy.trace.com:8051 -e CORE_PEER_LOCALMSPID=OrgDairyMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/peers/peer1.orgdairy.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgdairy.trace.com/users/Admin@orgdairy.trace.com/msp cli peer chaincode query -n dairy -C trace -c '{"args":["invoke","history","dairy101"]}'
+
+docker exec cli peer chaincode invoke -n auth -C auth -c '{"args":["add","1003","Jenny"]}' -o orderer1.house.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/house.com/orderers/orderer1.house.com/msp/tlscacerts/tlsca.house.com-cert.pem --peerAddresses peer0.orgauth.house.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgauth.house.com/peers/peer0.orgauth.house.com/tls/ca.crt
+
+sleep 10
+docker exec -e "CORE_PEER_ADDRESS=peer1.orgauth.house.com:8051" -e "CORE_PEER_LOCALMSPID=OrgAuthMSP" -e "CORE_PEER_TLS_ENABLED=true" -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgauth.house.com/peers/peer1.orgauth.house.com/tls/server.crt" -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgauth.house.com/peers/peer1.orgauth.house.com/tls/server.key" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgauth.house.com/peers/peer1.orgauth.house.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgauth.house.com/users/Admin@orgauth.house.com/msp" cli peer chaincode query -n auth -C auth -c '{"args":["check","1003","Jenny"]}'
 ```
 Then execute
 ```
-chmod +x dairy_test.sh
-./dairy_test.sh
+chmod +x auth_test.sh
+./auth_test.sh
 ```
 
-(i)Invoke the chaincode process.
+(i)Invoke the chaincode cert.
 
-Create and edit process_test.sh as following:
+Create and edit cert_test.sh as following:
 ```
 #!/bin/bash
- 
-docker exec cli peer chaincode invoke -n process -C trace -c '{"args":["invoke","set","process101","dairy101"]}' --peerAddresses peer0.orgprocess.trace.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer0.orgprocess.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgprocess.trace.com:10051 -e CORE_PEER_LOCALMSPID=OrgProcessMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/users/Admin@orgprocess.trace.com/msp cli peer chaincode query -n process -C trace -c '{"args":["invoke","get","process101"]}'
- 
-docker exec cli peer chaincode invoke -n process -C trace -c '{"args":["invoke","set","process101","dairy102"]}' --peerAddresses peer0.orgprocess.trace.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer0.orgprocess.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgprocess.trace.com:10051 -e CORE_PEER_LOCALMSPID=OrgProcessMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/peers/peer1.orgprocess.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgprocess.trace.com/users/Admin@orgprocess.trace.com/msp cli peer chaincode query -n process -C trace -c '{"args":["invoke","history","process101"]}'
+
+docker exec -e "CORE_PEER_ADDRESS=peer0.orgcert.house.com:9051" -e "CORE_PEER_LOCALMSPID=OrgCertMSP" -e "CORE_PEER_TLS_ENABLED=true" -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer0.orgcert.house.com/tls/server.crt" -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer0.orgcert.house.com/tls/server.key" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer0.orgcert.house.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/users/Admin@orgcert.house.com/msp" cli peer chaincode invoke -n cert -C cert -c '{"args":["add","1004","LaMeMei"]}' -o orderer1.house.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/house.com/orderers/orderer1.house.com/msp/tlscacerts/tlsca.house.com-cert.pem --peerAddresses peer0.orgcert.house.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer0.orgcert.house.com/tls/ca.crt
+
+sleep 10
+docker exec -e "CORE_PEER_ADDRESS=peer1.orgcert.house.com:10051" -e "CORE_PEER_LOCALMSPID=OrgCertMSP" -e "CORE_PEER_TLS_ENABLED=true" -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer1.orgcert.house.com/tls/server.crt" -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer1.orgcert.house.com/tls/server.key" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/peers/peer1.orgcert.house.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcert.house.com/users/Admin@orgcert.house.com/msp" cli peer chaincode query -n cert -C cert -c '{"args":["check","1004","LaMeMei"]}'
 ```
 Then execute
 ```
-chmod +x process_test.sh
-./process_test.sh
+chmod +x cert_test.sh
+./cert_test.sh
 ```
 
-(j)Invoke the chaincode sell.
+(j)Invoke the chaincode credit.
 
-Create and edit sell_test.sh as following:
+Create and edit credit_test.sh as following:
 ```
 #!/bin/bash
- 
-docker exec cli peer chaincode invoke -n sell -C trace -c '{"args":["invoke","set","sell101","process101"]}' --peerAddresses peer0.orgsell.trace.com:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer0.orgsell.trace.com/tls/ca.crt -o orderer1.trace.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/trace.com/orderers/orderer1.trace.com/msp/tlscacerts/tlsca.trace.com-cert.pem
-sleep 5
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgsell.trace.com:12051 -e CORE_PEER_LOCALMSPID=OrgSellMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/users/Admin@orgsell.trace.com/msp cli peer chaincode query -n sell -C trace -c '{"args":["invoke","get","sell101"]}'
- 
-docker exec -e CORE_PEER_ADDRESS=peer1.orgsell.trace.com:12051 -e CORE_PEER_LOCALMSPID=OrgSellMSP -e CORE_PEER_TLS_ENABLED=true -e CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/server.crt -e CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/server.key -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/peers/peer1.orgsell.trace.com/tls/ca.crt -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgsell.trace.com/users/Admin@orgsell.trace.com/msp cli peer chaincode query -n sell -C trace -c '{"args":["invoke","history","sell101"]}' --connTimeout 60s
+
+docker exec -e "CORE_PEER_ADDRESS=peer0.orgcredit.house.com:11051" -e "CORE_PEER_LOCALMSPID=OrgCreditMSP" -e "CORE_PEER_TLS_ENABLED=true" -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer0.orgcredit.house.com/tls/server.crt" -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer0.orgcredit.house.com/tls/server.key" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer0.orgcredit.house.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/users/Admin@orgcredit.house.com/msp" cli peer chaincode invoke -n credit -C credit -c '{"args":["add","1003","true"]}' -o orderer1.house.com:8050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/house.com/orderers/orderer1.house.com/msp/tlscacerts/tlsca.house.com-cert.pem --peerAddresses peer0.orgcredit.house.com:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer0.orgcredit.house.com/tls/ca.crt
+
+sleep 10
+docker exec -e "CORE_PEER_ADDRESS=peer1.orgcredit.house.com:12051" -e "CORE_PEER_LOCALMSPID=OrgCreditMSP" -e "CORE_PEER_TLS_ENABLED=true" -e "CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer1.orgcredit.house.com/tls/server.crt" -e "CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer1.orgcredit.house.com/tls/server.key" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/peers/peer1.orgcredit.house.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcredit.house.com/users/Admin@orgcredit.house.com/msp" cli peer chaincode query -n credit -C credit -c '{"args":["check","1003"]}'
 ```
 Then execute
 ```
-chmod +x sell_test.sh
-./sell_test.sh
+chmod +x credit_test.sh
+./credit_test.sh
 ```

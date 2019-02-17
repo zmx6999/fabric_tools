@@ -1,68 +1,82 @@
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        {
+          "org_name": "OrgAuth",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "8051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "channel_name": "cert",
+      "orgs": [
+        {
+          "org_name": "OrgCert",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "9051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "10051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "9051"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "channel_name": "credit",
+      "orgs": [
+        {
+          "org_name": "OrgCredit",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "11051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "12051"
+            }
+          ],
+          "anchor_peers": [
+            {
+              "peer_name": "peer0",
+              "port": "11051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "cli_name": "cli",
-  "channel_orgs": [
-    {
-      "org_name": "OrgDairy",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "8051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgProcess",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "9051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "10051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "9051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ],
-      "anchor_peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        }
-      ]
-    }
-  ]
+  "cli_name": "cli"
 }

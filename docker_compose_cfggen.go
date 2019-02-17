@@ -470,7 +470,7 @@ func updateHosts(dstPath string,config DockerComposeConfig) error {
 
 func main()  {
 	config:=DockerComposeConfig{}
-	err:=loadDockerComposeConfig("docker-compose_cfggen.json",&config)
+	err:=loadDockerComposeConfig("docker_compose_cfggen.json",&config)
 	if err!=nil {
 		panic(err)
 	}

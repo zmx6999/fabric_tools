@@ -1,5 +1,5 @@
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "orderers": [
     "orderer0",
     "orderer1"
@@ -12,7 +12,7 @@
   ],
   "peer_orgs": [
     {
-      "org_name": "OrgDairy",
+      "org_name": "OrgAuth",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "org_name": "OrgProcess",
+      "org_name": "OrgCert",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "org_name": "OrgSell",
+      "org_name": "OrgCredit",
       "peer_count": 2,
       "user_count": 1,
       "anchor_peers": [
@@ -37,6 +37,24 @@
     }
   ],
   "genesis_profile": "ThreeOrgsOrdererGenesis",
-  "channel_profile": "ThreeOrgsChannel",
-  "channel": "trace"
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        "OrgAuth"
+      ]
+    },
+    {
+      "channel_name": "cert",
+      "orgs": [
+        "OrgCert"
+      ]
+    },
+    {
+      "channel_name": "credit",
+      "orgs": [
+        "OrgCredit"
+      ]
+    }
+  ]
 }

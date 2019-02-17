@@ -1,5 +1,5 @@
 {
-  "domain": "trace.com",
+  "domain": "house.com",
   "zookeepers": [
     {
       "host_name": "zookeeper0",
@@ -98,7 +98,7 @@
   ],
   "cas": [
     {
-      "peer_org_name": "OrgDairy",
+      "peer_org_name": "OrgAuth",
       "ports": [
         "7054"
       ],
@@ -106,7 +106,7 @@
       "admin_password": "adminpw"
     },
     {
-      "peer_org_name": "OrgProcess",
+      "peer_org_name": "OrgCert",
       "ports": [
         "8054"
       ],
@@ -114,7 +114,7 @@
       "admin_password": "adminpw"
     },
     {
-      "peer_org_name": "OrgSell",
+      "peer_org_name": "OrgCredit",
       "ports": [
         "9054"
       ],
@@ -125,7 +125,7 @@
   "peers": [
     {
       "peer_name": "peer0",
-      "org_name": "OrgDairy",
+      "org_name": "OrgAuth",
       "ports": [
         "7051",
         "7052",
@@ -134,7 +134,7 @@
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgDairy",
+      "org_name": "OrgAuth",
       "ports": [
         "8051",
         "8052",
@@ -143,7 +143,7 @@
     },
     {
       "peer_name": "peer0",
-      "org_name": "OrgProcess",
+      "org_name": "OrgCert",
       "ports": [
         "9051",
         "9052",
@@ -152,7 +152,7 @@
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgProcess",
+      "org_name": "OrgCert",
       "ports": [
         "10051",
         "10052",
@@ -161,7 +161,7 @@
     },
     {
       "peer_name": "peer0",
-      "org_name": "OrgSell",
+      "org_name": "OrgCredit",
       "ports": [
         "11051",
         "11052",
@@ -170,7 +170,7 @@
     },
     {
       "peer_name": "peer1",
-      "org_name": "OrgSell",
+      "org_name": "OrgCredit",
       "ports": [
         "12051",
         "12052",
@@ -182,30 +182,30 @@
     {
       "cli_name": "cli",
       "core_peer_name": "peer0",
-      "core_peer_org": "OrgDairy",
+      "core_peer_org": "OrgAuth",
       "depends": [
-        "peer0.orgdairy.trace.com",
-        "peer1.orgdairy.trace.com",
-        "peer0.orgprocess.trace.com",
-        "peer1.orgprocess.trace.com"
+        "peer0.orgauth.house.com",
+        "peer1.orgauth.house.com",
+        "peer0.orgcert.house.com",
+        "peer1.orgcert.house.com"
       ]
     }
   ],
   "hosts": [
-    "zookeeper0:127.0.0.1",
-    "kafka0:127.0.0.1",
-    "orderer0.trace.com:127.0.0.1",
-    "zookeeper1:127.0.0.1",
-    "kafka1:127.0.0.1",
-    "orderer1.trace.com:127.0.0.1",
-    "zookeeper2:127.0.0.1",
-    "kafka2:127.0.0.1",
-    "peer0.orgdairy.trace.com:127.0.0.1",
-    "peer1.orgdairy.trace.com:127.0.0.1",
-    "peer0.orgprocess.trace.com:127.0.0.1",
-    "peer1.orgprocess.trace.com:127.0.0.1",
-    "kafka3:127.0.0.1",
-    "peer0.orgsell.trace.com:127.0.0.1",
-    "peer1.orgsell.trace.com:127.0.0.1"
+    "zookeeper0:139.180.138.179",
+    "kafka0:139.180.138.179",
+    "orderer0.house.com:139.180.138.179",
+    "zookeeper1:45.77.251.25",
+    "kafka1:45.77.251.25",
+    "orderer1.house.com:45.77.251.25",
+    "zookeeper2:45.77.250.9",
+    "kafka2:45.77.250.9",
+    "peer0.orgauth.house.com:45.77.250.9",
+    "peer1.orgauth.house.com:45.77.250.9",
+    "peer0.orgcert.house.com:45.77.250.9",
+    "peer1.orgcert.house.com:45.77.250.9",
+    "kafka3:139.180.146.33",
+    "peer0.orgcredit.house.com:139.180.146.33",
+    "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }

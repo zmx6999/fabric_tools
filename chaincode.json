@@ -1,40 +1,31 @@
 {
-  "domain": "trace.com",
-  "channel_name": "trace",
-  "chaincode_name": "dairy",
+  "domain": "house.com",
+  "channels": [
+    {
+      "channel_name": "auth",
+      "orgs": [
+        {
+          "org_name": "OrgAuth",
+          "peers": [
+            {
+              "peer_name": "peer0",
+              "port": "7051"
+            },
+            {
+              "peer_name": "peer1",
+              "port": "8051"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "chaincode_name": "auth",
   "chaincode_version": "1.0",
   "orderer": {
     "orderer_name": "orderer0",
     "port": "7050"
   },
-  "endorse": "AND ('OrgDairyMSP.member')",
-  "cli_name": "cli",
-  "chaincode_orgs": [
-    {
-      "org_name": "OrgDairy",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "7051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "8051"
-        }
-      ]
-    },
-    {
-      "org_name": "OrgSell",
-      "peers": [
-        {
-          "peer_name": "peer0",
-          "port": "11051"
-        },
-        {
-          "peer_name": "peer1",
-          "port": "12051"
-        }
-      ]
-    }
-  ]
+  "endorse": "AND ('OrgAuthMSP.member')",
+  "cli_name": "cli"
 }

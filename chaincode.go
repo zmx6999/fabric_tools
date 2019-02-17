@@ -20,18 +20,21 @@ type ChaincodePeer struct {
 type ChaincodeOrg struct {
 	OrgName string `json:"org_name"`
 	Peers []ChaincodePeer `json:"peers"`
-//	AnchorPeers []ChaincodePeer `json:"anchor_peers"`
 }
 
 type ChaincodeConfig struct {
 	Domain string `json:"domain"`
 	ChaincodeName string `json:"chaincode_name"`
 	ChaincodeVersion string `json:"chaincode_version"`
-	ChannelName string `json:"channel_name"`
+	Channels []ChaincodeChannel `json:"channels"`
 	Orderer ChaincodeOrderer `json:"orderer"`
 	Endorse string `json:"endorse"`
 	CliName string `json:"cli_name"`
-	ChaincodeOrgs []ChaincodeOrg `json:"chaincode_orgs"`
+}
+
+type ChaincodeChannel struct {
+	ChannelName string `json:"channel_name"`
+	Orgs []ChaincodeOrg `json:"orgs"`
 }
 
 func loadChaincodeConfig(configPath string,config *ChaincodeConfig) error {
@@ -128,12 +131,15 @@ function installAndInstantiateChaincode() {
 		fi
 		i=`+"`"+`expr ${i} + 1`+"`"+`
 	done
-}
+}`
+	for _,channel:=range config.Channels{
+		str+=`
 
-installAndInstantiateChaincode `+config.ChaincodeName+` `+config.ChaincodeVersion+` `+config.ChannelName+` `+config.Orderer.OrdererName+`.`+config.Domain+`:`+config.Orderer.Port+` "`+config.Endorse+`" `+config.CliName
-	for _,org:=range config.ChaincodeOrgs{
-		for _,peer:=range org.Peers{
-			str+=` `+peer.PeerName+`.`+strings.ToLower(org.OrgName)+`.`+config.Domain+`:`+peer.Port+`:`+org.OrgName
+installAndInstantiateChaincode `+config.ChaincodeName+` `+config.ChaincodeVersion+` `+channel.ChannelName+` `+config.Orderer.OrdererName+`.`+config.Domain+`:`+config.Orderer.Port+` "`+config.Endorse+`" `+config.CliName
+		for _,org:=range channel.Orgs{
+			for _,peer:=range org.Peers{
+				str+=` `+peer.PeerName+`.`+strings.ToLower(org.OrgName)+`.`+config.Domain+`:`+peer.Port+`:`+org.OrgName
+			}
 		}
 	}
 

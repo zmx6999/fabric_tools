@@ -14,13 +14,7 @@ type Config struct {
 	Kafkas []string `json:"kafkas"`
 	PeerOrgs []PeerOrg `json:"peer_orgs"`
 	GenesisProfile string `json:"genesis_profile"`
-	ChannelProfile string `json:"channel_profile"`
-	Channel string `json:"channel"`
-}
-
-type ConfigKafka struct {
-	HostName string `json:"host_name"`
-	Port string `json:"port"`
+	Channels []ConfigChannel `json:"channels"`
 }
 
 type PeerOrg struct {
@@ -28,6 +22,11 @@ type PeerOrg struct {
 	PeerCount int `json:"peer_count"`
 	UserCount int `json:"user_count"`
 	AnchorPeers []string `json:"anchor_peers"`
+}
+
+type ConfigChannel struct {
+	ChannelName string `json:"channel_name"`
+	Orgs []string `json:"orgs"`
 }
 
 func loadConfig(configPath string,config *Config) error {
@@ -172,29 +171,33 @@ Profiles:
                 - *OrdererOrg
             Capabilities:
                 <<: *OrdererCapabilities
-        Consortiums:
-            SampleConsortium:
+        Consortiums:`
+	for _,channel:=range config.Channels{
+		str+=`
+            `+channel.ChannelName+`Consortium:
                 Organizations:`
-	for _,peerOrg:=range config.PeerOrgs{
-		_str:=`
-                    - *`+peerOrg.OrgName
-		str+=_str
+		for _,org:=range channel.Orgs{
+			_str:=`
+                    - *`+org
+			str+=_str
+		}
 	}
-	str+=`
-    `+config.ChannelProfile+`:
-        Consortium: SampleConsortium
+	for _,channel:=range config.Channels{
+		str+=`
+    `+channel.ChannelName+`Channel:
+        Consortium: `+channel.ChannelName+`Consortium
         Application:
             <<: *ApplicationDefaults
             Organizations:`
-	for _,peerOrg:=range config.PeerOrgs{
-		_str:=`
-                - *`+peerOrg.OrgName
-		str+=_str
-	}
-    str+=`
+		for _,org:=range channel.Orgs{
+			_str:=`
+                - *`+org
+			str+=_str
+		}
+		str+=`
             Capabilities:
-                <<: *ApplicationCapabilities
-`
+                <<: *ApplicationCapabilities`
+	}
 
 	file,err:=os.Create(dstPath)
 	if err!=nil {
@@ -210,21 +213,7 @@ func generateShell(dstPath string,config Config) error {
 	str:=`
 #!/bin/bash
 
-function updateAnchorPeer() {
-    CHANNEL=$1
-    GENESIS_PROFILE=$2
-    CHANNEL_PROFILE=$3
-    v=$4
-    echo "configtxgen -profile ${CHANNEL_PROFILE} -outputAnchorPeersUpdate channel-artifacts/${v}anchors.tx -channelID ${CHANNEL} -asOrg ${v}"
-    configtxgen -profile ${CHANNEL_PROFILE} -outputAnchorPeersUpdate channel-artifacts/${v}anchors.tx -channelID ${CHANNEL} -asOrg ${v}
-    if [ $? -ne 0 ]; then echo "failed to generate ${v}anchors.tx"; exit 1; fi
-}
-
 function generate() {
-    CHANNEL=$1
-    GENESIS_PROFILE=$2
-    CHANNEL_PROFILE=$3
-
     if [ -d crypto-config ]; then rm -rf crypto-config/*; fi
     if [ -d channel-artifacts ]; then rm -rf channel-artifacts/*; else mkdir channel-artifacts; fi
     
@@ -232,29 +221,22 @@ function generate() {
     cryptogen generate --config=crypto-config.yaml
     if [ $? -ne 0 ]; then echo "failed to generate crypto"; exit 1; fi
     
-    echo "configtxgen -profile ${GENESIS_PROFILE} -outputBlock channel-artifacts/genesis.block"
-    configtxgen -profile ${GENESIS_PROFILE} -outputBlock channel-artifacts/genesis.block
-    if [ $? -ne 0 ]; then echo "failed to generate genesis.block"; exit 1; fi
-    
-    echo "configtxgen -profile ${CHANNEL_PROFILE} -outputCreateChannelTx channel-artifacts/channel.tx -channelID ${CHANNEL}"
-    configtxgen -profile ${CHANNEL_PROFILE} -outputCreateChannelTx channel-artifacts/channel.tx -channelID ${CHANNEL}
-    if [ $? -ne 0 ]; then echo "failed to generate channel.tx"; exit 1; fi
-    
-    i=1
-    for v in $@; do
-        if [ $i -gt 3 ]; then
-            updateAnchorPeer ${CHANNEL} ${GENESIS_PROFILE} ${CHANNEL_PROFILE} ${v}
-        fi
-        i=`+"`"+`expr ${i} + 1`+"`"+`
-    done
+    echo "configtxgen -profile `+config.GenesisProfile+` -outputBlock channel-artifacts/genesis.block"
+    configtxgen -profile `+config.GenesisProfile+` -outputBlock channel-artifacts/genesis.block
+    if [ $? -ne 0 ]; then echo "failed to generate genesis.block"; exit 1; fi`
+	for _,channel:=range config.Channels{
+		str+=`
+
+	echo "configtxgen -profile `+channel.ChannelName+`Channel -outputCreateChannelTx channel-artifacts/`+channel.ChannelName+`.tx -channelID `+channel.ChannelName+`"
+    configtxgen -profile `+channel.ChannelName+`Channel -outputCreateChannelTx channel-artifacts/`+channel.ChannelName+`.tx -channelID `+channel.ChannelName+`
+    if [ $? -ne 0 ]; then echo "failed to generate `+channel.ChannelName+`.tx"; exit 1; fi`
+	}
+	str+=`
 }
 
 export PATH=../../bin:$PATH
 
-generate `+config.Channel+` `+config.GenesisProfile+` `+config.ChannelProfile
-	for _,peerOrg:=range config.PeerOrgs{
-		str+=` `+peerOrg.OrgName+`MSP`
-	}
+generate`
 
 	file,err:=os.Create(dstPath)
 	if err!=nil {
