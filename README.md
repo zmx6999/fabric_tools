@@ -107,10 +107,11 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
   "zookeepers": [
     {
       "host_name": "zookeeper0",
+      // outer ports
       "ports": [
-        "2181",
-        "2888",
-        "3888"
+        "2181", // The first item corresponds to the inner port 2181
+        "2888", // The second item corresponds to the inner port 2888
+        "3888" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "1",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -136,8 +137,9 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
         "kafka2",
         "kafka3"
       ],
+      // outer ports
       "ports": [
-        "7050"
+        "7050" // corresponds to the inner port 7050
       ]
     }
   ],
@@ -167,10 +169,11 @@ Edit docker_compose_cfggen.json on host B as following:
   "zookeepers": [
     {
       "host_name": "zookeeper1",
+      // outer ports
       "ports": [
-        "2181",
-        "2888",
-        "3888"
+        "2181", // The first item corresponds to the inner port 2181
+        "2888", // The second item corresponds to the inner port 2888
+        "3888" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "2",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -196,8 +199,9 @@ Edit docker_compose_cfggen.json on host B as following:
         "kafka2",
         "kafka3"
       ],
+      // outer ports
       "ports": [
-        "8050"
+        "8050" // corresponds to the inner port 7050
       ]
     }
   ],
@@ -227,16 +231,18 @@ Edit docker_compose_cfggen.json on host C as following:
   "cas": [
     {
       "peer_org_name": "OrgAuth",
+      // outer ports
       "ports": [
-        "7054"
+        "7054" // corresponds to the inner port 7054
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
     },
     {
       "peer_org_name": "OrgCert",
+      // outer ports
       "ports": [
-        "8054"
+        "8054" // corresponds to the inner port 7054
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
@@ -245,10 +251,11 @@ Edit docker_compose_cfggen.json on host C as following:
   "zookeepers": [
     {
       "host_name": "zookeeper2",
+      // outer ports
       "ports": [
-        "2181",
-        "2888",
-        "3888"
+        "2181", // The first item corresponds to the inner port 2181
+        "2888", // The second item corresponds to the inner port 2888
+        "3888" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "3",
       "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
@@ -269,37 +276,41 @@ Edit docker_compose_cfggen.json on host C as following:
     {
       "peer_name": "peer0",
       "org_name": "OrgAuth",
+      // outer ports
       "ports": [
-        "7051",
-        "7052",
-        "7053"
+        "7051", // The first item corresponds to the inner port 7051
+        "7052", // The second item corresponds to the inner port 7052
+        "7053" // The third item corresponds to the inner port 7053
       ]
     },
     {
       "peer_name": "peer1",
       "org_name": "OrgAuth",
+      // outer ports
       "ports": [
-        "8051",
-        "8052",
-        "8053"
+        "8051", // The first item corresponds to the inner port 7051
+        "8052", // The second item corresponds to the inner port 7052
+        "8053" // The third item corresponds to the inner port 7053
       ]
     },
     {
       "peer_name": "peer0",
       "org_name": "OrgCert",
+      // outer ports
       "ports": [
-        "9051",
-        "9052",
-        "9053"
+        "9051", // The first item corresponds to the inner port 7051
+        "9052", // The second item corresponds to the inner port 7052
+        "9053" // The third item corresponds to the inner port 7053
       ]
     },
     {
       "peer_name": "peer1",
       "org_name": "OrgCert",
+      // outer ports
       "ports": [
-        "10051",
-        "10052",
-        "10053"
+        "10051", // The first item corresponds to the inner port 7051
+        "10052", // The second item corresponds to the inner port 7052
+        "10053" // The third item corresponds to the inner port 7053
       ]
     }
   ],
@@ -342,8 +353,9 @@ Edit docker_compose_cfggen.json on host D as following:
   "cas": [
     {
       "peer_org_name": "OrgCredit",
+      // outer ports
       "ports": [
-        "9054"
+        "9054" // corresponds to the inner port 7054
       ],
       "admin_name": "admin",
       "admin_password": "adminpw"
@@ -364,19 +376,21 @@ Edit docker_compose_cfggen.json on host D as following:
     {
       "peer_name": "peer0",
       "org_name": "OrgCredit",
+      // outer ports
       "ports": [
-        "11051",
-        "11052",
-        "11053"
+        "11051", // The first item corresponds to the inner port 7051
+        "11052", // The second item corresponds to the inner port 7052
+        "11053" // The third item corresponds to the inner port 7053
       ]
     },
     {
       "peer_name": "peer1",
       "org_name": "OrgCredit",
+      // outer ports
       "ports": [
-        "12051",
-        "12052",
-        "12053"
+        "12051", // The first item corresponds to the inner port 7051
+        "12052", // The second item corresponds to the inner port 7052
+        "12053" // The third item corresponds to the inner port 7053
       ]
     }
   ],
