@@ -281,7 +281,14 @@ Edit docker_compose_cfggen.json on host C as following:
         "7051", // The first item corresponds to the inner port 7051
         "7052", // The second item corresponds to the inner port 7052
         "7053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        // outer ports
+        "ports": [
+          "5984" // corresponds to the inner port 5984
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -291,7 +298,14 @@ Edit docker_compose_cfggen.json on host C as following:
         "8051", // The first item corresponds to the inner port 7051
         "8052", // The second item corresponds to the inner port 7052
         "8053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        // outer ports
+        "ports": [
+          "6984" // corresponds to the inner port 5984
+        ]
+      }
     },
     {
       "peer_name": "peer0",
@@ -301,7 +315,14 @@ Edit docker_compose_cfggen.json on host C as following:
         "9051", // The first item corresponds to the inner port 7051
         "9052", // The second item corresponds to the inner port 7052
         "9053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        // outer ports
+        "ports": [
+          "7984" // corresponds to the inner port 5984
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -311,7 +332,14 @@ Edit docker_compose_cfggen.json on host C as following:
         "10051", // The first item corresponds to the inner port 7051
         "10052", // The second item corresponds to the inner port 7052
         "10053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        // outer ports
+        "ports": [
+          "8984" // corresponds to the inner port 5984
+        ]
+      }
     }
   ],
   "clis": [
@@ -328,21 +356,21 @@ Edit docker_compose_cfggen.json on host C as following:
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.138.179",
-    "kafka0:139.180.138.179",
-    "orderer0.house.com:139.180.138.179",
-    "zookeeper1:45.77.251.25",
-    "kafka1:45.77.251.25",
-    "orderer1.house.com:45.77.251.25",
+    "zookeeper0:139.180.146.33",
+    "kafka0:139.180.146.33",
+    "orderer0.house.com:139.180.146.33",
+    "zookeeper1:139.180.138.179",
+    "kafka1:139.180.138.179",
+    "orderer1.house.com:139.180.138.179",
     "zookeeper2:45.77.250.9",
     "kafka2:45.77.250.9",
     "peer0.orgauth.house.com:45.77.250.9",
     "peer1.orgauth.house.com:45.77.250.9",
     "peer0.orgcert.house.com:45.77.250.9",
     "peer1.orgcert.house.com:45.77.250.9",
-    "kafka3:139.180.146.33",
-    "peer0.orgcredit.house.com:139.180.146.33",
-    "peer1.orgcredit.house.com:139.180.146.33"
+    "kafka3:149.28.157.54",
+    "peer0.orgcredit.house.com:149.28.157.54",
+    "peer1.orgcredit.house.com:149.28.157.54"
   ]
 }
 ```
@@ -381,7 +409,14 @@ Edit docker_compose_cfggen.json on host D as following:
         "11051", // The first item corresponds to the inner port 7051
         "11052", // The second item corresponds to the inner port 7052
         "11053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        // outer ports
+        "ports": [
+          "9984" // corresponds to the inner port 5984
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -391,25 +426,32 @@ Edit docker_compose_cfggen.json on host D as following:
         "12051", // The first item corresponds to the inner port 7051
         "12052", // The second item corresponds to the inner port 7052
         "12053" // The third item corresponds to the inner port 7053
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        // outer ports
+        "ports": [
+          "10984" // corresponds to the inner port 5984
+        ]
+      }
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.138.179",
-    "kafka0:139.180.138.179",
-    "orderer0.house.com:139.180.138.179",
-    "zookeeper1:45.77.251.25",
-    "kafka1:45.77.251.25",
-    "orderer1.house.com:45.77.251.25",
+    "zookeeper0:139.180.146.33",
+    "kafka0:139.180.146.33",
+    "orderer0.house.com:139.180.146.33",
+    "zookeeper1:139.180.138.179",
+    "kafka1:139.180.138.179",
+    "orderer1.house.com:139.180.138.179",
     "zookeeper2:45.77.250.9",
     "kafka2:45.77.250.9",
     "peer0.orgauth.house.com:45.77.250.9",
     "peer1.orgauth.house.com:45.77.250.9",
     "peer0.orgcert.house.com:45.77.250.9",
     "peer1.orgcert.house.com:45.77.250.9",
-    "kafka3:139.180.146.33",
-    "peer0.orgcredit.house.com:139.180.146.33",
-    "peer1.orgcredit.house.com:139.180.146.33"
+    "kafka3:149.28.157.54",
+    "peer0.orgcredit.house.com:149.28.157.54",
+    "peer1.orgcredit.house.com:149.28.157.54"
   ]
 }
 ```

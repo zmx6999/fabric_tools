@@ -130,7 +130,13 @@
         "7051",
         "7052",
         "7053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        "ports": [
+          "5984"
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -139,7 +145,13 @@
         "8051",
         "8052",
         "8053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        "ports": [
+          "6984"
+        ]
+      }
     },
     {
       "peer_name": "peer0",
@@ -148,7 +160,13 @@
         "9051",
         "9052",
         "9053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        "ports": [
+          "7984"
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -157,7 +175,13 @@
         "10051",
         "10052",
         "10053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        "ports": [
+          "8984"
+        ]
+      }
     },
     {
       "peer_name": "peer0",
@@ -166,7 +190,13 @@
         "11051",
         "11052",
         "11053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb0",
+        "ports": [
+          "9984"
+        ]
+      }
     },
     {
       "peer_name": "peer1",
@@ -175,7 +205,13 @@
         "12051",
         "12052",
         "12053"
-      ]
+      ],
+      "couchdb": {
+        "couchdb_name": "couchdb1",
+        "ports": [
+          "10984"
+        ]
+      }
     }
   ],
   "clis": [

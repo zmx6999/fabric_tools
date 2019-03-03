@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/sparrc/go-ping"
 	"time"
+	"math/rand"
 )
 
 type Ca struct {
@@ -40,6 +41,7 @@ type Peer struct {
 	PeerName string `json:"peer_name"`
 	OrgName string `json:"org_name"`
 	Ports []string `json:"ports"`
+	Couchdb Couchdb `json:"couchdb"`
 }
 
 type Cli struct {
@@ -58,6 +60,23 @@ type DockerComposeConfig struct {
 	Peers []Peer `json:"peers"`
 	Hosts []string `json:"hosts"`
 	Clis []Cli `json:"clis"`
+}
+
+type Couchdb struct {
+	CouchdbName string `json:"couchdb_name"`
+	Ports []string `json:"ports"`
+}
+
+func generateNonceStr(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	x:="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	nx:=len(x)
+	xbyte:=[]byte(x)
+	str:=""
+	for i:=0; i<length; i++ {
+		str+=string(xbyte[rand.Intn(nx)])
+	}
+	return str
 }
 
 func loadDockerComposeConfig(configPath string,config *DockerComposeConfig) error {
@@ -255,7 +274,19 @@ func peerConfigStr(config DockerComposeConfig) string {
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=`+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`:7051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`:7051
-      - CORE_PEER_LOCALMSPID=`+peer.OrgName+`MSP
+      - CORE_PEER_LOCALMSPID=`+peer.OrgName+`MSP`
+		var couchdbUsername string
+		var couchdbPassword string
+		if peer.Couchdb.CouchdbName!="" {
+			couchdbUsername=generateNonceStr(16)
+			couchdbPassword=generateNonceStr(16)
+			_str+=`
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=`+peer.Couchdb.CouchdbName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=`+couchdbUsername+`
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=`+couchdbPassword
+		}
+		_str+=`
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     volumes:
@@ -275,6 +306,22 @@ func peerConfigStr(config DockerComposeConfig) string {
 		}
 		_str+=`
 `
+		if peer.Couchdb.CouchdbName!="" {
+			_str+=`
+  `+peer.Couchdb.CouchdbName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`:
+    container_name: `+peer.Couchdb.CouchdbName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`
+    image: hyperledger/fabric-couchdb
+    environment:
+      - COUCHDB_USER=`+couchdbUsername+`
+      - COUCHDB_PASSWORD=`+couchdbPassword+`
+    ports:`
+		for _,port:=range peer.Couchdb.Ports{
+			_str+=`
+      - "127.0.0.1:`+port+`:5984"`
+		}
+		_str+=`
+`
+		}
 		str+=_str
 	}
 	return str
