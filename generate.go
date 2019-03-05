@@ -119,17 +119,6 @@ Organizations:`
 	}
 
 	str+=`
-
-Capabilities:
-    Global: &ChannelCapabilities
-        V1_1: true
-    Orderer: &OrdererCapabilities
-        V1_1: true
-    Application: &ApplicationCapabilities
-        V1_2: true
-`
-
-	str+=`
 Application: &ApplicationDefaults
     Organizations:
 `
@@ -163,14 +152,10 @@ Orderer: &OrdererDefaults
 	str+=`
 Profiles:
     `+config.GenesisProfile+`:
-        Capabilities:
-            <<: *ChannelCapabilities
         Orderer:
             <<: *OrdererDefaults
             Organizations:
                 - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
         Consortiums:`
 	for _,channel:=range config.Channels{
 		str+=`
@@ -194,9 +179,6 @@ Profiles:
                 - *`+org
 			str+=_str
 		}
-		str+=`
-            Capabilities:
-                <<: *ApplicationCapabilities`
 	}
 
 	file,err:=os.Create(dstPath)

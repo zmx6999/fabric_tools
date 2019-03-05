@@ -21,7 +21,7 @@ go env
 yum install git -y
 yum install gcc -y
 
-git clone https://github.com/hyperledger/fabric -b v1.2.0
+git clone https://github.com/hyperledger/fabric
 
 mkdir -p /root/go/src
 
@@ -29,7 +29,6 @@ go get github.com/hyperledger/fabric/core/chaincode/shim
 go get github.com/hyperledger/fabric/protos/peer
 
 cd fabric/scripts
-sed -i 's/1.2.0-rc1/1.2.0/' bootstrap.sh
 ./bootstrap.sh
 
 if [ $# -gt 0 ]; then mkdir -p fabric-samples/${1}/network; fi
