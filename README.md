@@ -135,6 +135,7 @@ Edit docker_compose_cfggen.json on host A as following:
         "zookeeper1:2182",
         "zookeeper2:2183"
       ],
+      // outer ports
       "ports": [
         "9092"
       ],
@@ -211,6 +212,7 @@ Edit docker_compose_cfggen.json on host B as following:
         "zookeeper1:2182",
         "zookeeper2:2183"
       ],
+      // outer ports
       "ports": [
         "9093"
       ],
@@ -314,6 +316,7 @@ Edit docker_compose_cfggen.json on host C as following:
         "zookeeper1:2182",
         "zookeeper2:2183"
       ],
+      // outer ports
       "ports": [
         "9094"
       ],
@@ -462,6 +465,7 @@ Edit docker_compose_cfggen.json on host D as following:
         "zookeeper1:2182",
         "zookeeper2:2183"
       ],
+      // outer ports
       "ports": [
         "9095"
       ],
