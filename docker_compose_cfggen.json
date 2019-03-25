@@ -9,27 +9,33 @@
         "3888"
       ],
       "zoo_my_id": "1",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper0/data",
+      "data_log_backup_dir": "/backup/zookeeper0/datalog"
     },
     {
       "host_name": "zookeeper1",
       "ports": [
-        "2181",
-        "2888",
-        "3888"
+        "2182",
+        "2889",
+        "3889"
       ],
       "zoo_my_id": "2",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper1/data",
+      "data_log_backup_dir": "/backup/zookeeper1/datalog"
     },
     {
       "host_name": "zookeeper2",
       "ports": [
-        "2181",
-        "2888",
-        "3888"
+        "2183",
+        "2890",
+        "3890"
       ],
       "zoo_my_id": "3",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper2/data",
+      "data_log_backup_dir": "/backup/zookeeper2/datalog"
     }
   ],
   "kafkas": [
@@ -38,62 +44,80 @@
       "broker_id": "0",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9092"
+      ],
+      "backup_dir": "/backup/kafka0/logs"
     },
     {
       "host_name": "kafka1",
       "broker_id": "1",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9093"
+      ],
+      "backup_dir": "/backup/kafka1/logs"
     },
     {
       "host_name": "kafka2",
       "broker_id": "2",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9094"
+      ],
+      "backup_dir": "/backup/kafka2/logs"
     },
     {
       "host_name": "kafka3",
       "broker_id": "3",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9095"
+      ],
+      "backup_dir": "/backup/kafka3/logs"
     }
   ],
   "orderers": [
     {
       "orderer_name": "orderer0",
       "kafka_brokers": [
-        "kafka0",
-        "kafka1",
-        "kafka2",
-        "kafka3"
+        "kafka0:9092",
+        "kafka1:9093",
+        "kafka2:9094",
+        "kafka3:9095"
       ],
       "ports": [
         "7050"
-      ]
+      ],
+      "backup_dir": "/backup/orderer0/production"
     },
     {
       "orderer_name": "orderer1",
       "kafka_brokers": [
-        "kafka0",
-        "kafka1",
-        "kafka2",
-        "kafka3"
+        "kafka0:9092",
+        "kafka1:9093",
+        "kafka2:9094",
+        "kafka3:9095"
       ],
       "ports": [
         "8050"
-      ]
+      ],
+      "backup_dir": "/backup/orderer1/production"
     }
   ],
   "cas": [
@@ -135,8 +159,10 @@
         "couchdb_name": "couchdb0",
         "ports": [
           "5984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgAuth/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgAuth/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -150,8 +176,10 @@
         "couchdb_name": "couchdb1",
         "ports": [
           "6984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgAuth/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgAuth/peer1/production"
     },
     {
       "peer_name": "peer0",
@@ -165,8 +193,10 @@
         "couchdb_name": "couchdb0",
         "ports": [
           "7984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCert/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgCert/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -180,8 +210,10 @@
         "couchdb_name": "couchdb1",
         "ports": [
           "8984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCert/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgCert/peer1/production"
     },
     {
       "peer_name": "peer0",
@@ -195,8 +227,10 @@
         "couchdb_name": "couchdb0",
         "ports": [
           "9984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCredit/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgCredit/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -210,8 +244,10 @@
         "couchdb_name": "couchdb1",
         "ports": [
           "10984"
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCredit/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgCredit/peer1/production"
     }
   ],
   "clis": [
@@ -228,20 +264,20 @@
     }
   ],
   "hosts": [
-    "zookeeper0:139.180.138.179",
-    "kafka0:139.180.138.179",
-    "orderer0.house.com:139.180.138.179",
-    "zookeeper1:45.77.251.25",
-    "kafka1:45.77.251.25",
-    "orderer1.house.com:45.77.251.25",
+    "zookeeper0:45.77.250.9",
+    "kafka0:45.77.250.9",
+    "orderer0.house.com:45.77.250.9",
+    "zookeeper1:45.77.250.9",
+    "kafka1:45.77.250.9",
+    "orderer1.house.com:45.77.250.9",
     "zookeeper2:45.77.250.9",
     "kafka2:45.77.250.9",
     "peer0.orgauth.house.com:45.77.250.9",
     "peer1.orgauth.house.com:45.77.250.9",
     "peer0.orgcert.house.com:45.77.250.9",
     "peer1.orgcert.house.com:45.77.250.9",
-    "kafka3:139.180.146.33",
-    "peer0.orgcredit.house.com:139.180.146.33",
-    "peer1.orgcredit.house.com:139.180.146.33"
+    "kafka3:45.77.250.9",
+    "peer0.orgcredit.house.com:45.77.250.9",
+    "peer1.orgcredit.house.com:45.77.250.9"
   ]
 }

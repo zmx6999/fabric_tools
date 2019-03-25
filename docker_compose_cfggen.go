@@ -23,18 +23,23 @@ type Zookeeper struct {
 	Ports []string `json:"ports"`
 	ZooMyID string `json:"zoo_my_id"`
 	ZooServers string `json:"zoo_servers"`
+	DataBackupDir string `json:"data_backup_dir"`
+	DataLogBackupDir string `json:"data_log_backup_dir"`
 }
 
 type Kafka struct {
 	HostName string `json:"host_name"`
 	BrokerID string `json:"broker_id"`
 	Zookeepers []string `json:"zookeepers"`
+	Ports []string `json:"ports"`
+	BackupDir string `json:"backup_dir"`
 }
 
 type Orderer struct {
 	OrdererName string `json:"orderer_name"`
 	KafkaBrokers []string `json:"kafka_brokers"`
 	Ports []string `json:"ports"`
+	BackupDir string `json:"backup_dir"`
 }
 
 type Peer struct {
@@ -42,6 +47,7 @@ type Peer struct {
 	OrgName string `json:"org_name"`
 	Ports []string `json:"ports"`
 	Couchdb Couchdb `json:"couchdb"`
+	BackupDir string `json:"backup_dir"`
 }
 
 type Cli struct {
@@ -65,6 +71,7 @@ type DockerComposeConfig struct {
 type Couchdb struct {
 	CouchdbName string `json:"couchdb_name"`
 	Ports []string `json:"ports"`
+	BackupDir string `json:"backup_dir"`
 }
 
 func generateNonceStr(length int) string {
@@ -202,7 +209,7 @@ func ordererConfigStr(config DockerComposeConfig) string {
 	for _,orderer:=range config.Orderers{
 		kafkaBrokers:=[]string{}
 		for _,broker:=range orderer.KafkaBrokers{
-			kafkaBrokers=append(kafkaBrokers,broker+":9092")
+			kafkaBrokers=append(kafkaBrokers,broker)
 		}
 		_str:=`
   `+orderer.OrdererName+`.`+config.Domain+`:
@@ -231,6 +238,7 @@ func ordererConfigStr(config DockerComposeConfig) string {
       - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ./crypto-config/ordererOrganizations/`+config.Domain+`/orderers/`+orderer.OrdererName+`.`+config.Domain+`/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/`+config.Domain+`/orderers/`+orderer.OrdererName+`.`+config.Domain+`/tls/:/var/hyperledger/orderer/tls
+      - `+orderer.BackupDir+`:/var/hyperledger/production
     ports:`
 		for _,port:=range orderer.Ports{
 			_str+=`
@@ -293,6 +301,7 @@ func peerConfigStr(config DockerComposeConfig) string {
       - /var/run/:/host/var/run/
       - ./crypto-config/peerOrganizations/`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/peers/`+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/msp:/etc/hyperledger/fabric/msp
       - ./crypto-config/peerOrganizations/`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/peers/`+peer.PeerName+`.`+strings.ToLower(peer.OrgName)+`.`+config.Domain+`/tls:/etc/hyperledger/fabric/tls
+      - `+peer.BackupDir+`:/var/hyperledger/production
     ports:`
 		for k,port:=range peer.Ports{
 			_str+=`
@@ -320,6 +329,8 @@ func peerConfigStr(config DockerComposeConfig) string {
       - "127.0.0.1:`+port+`:5984"`
 		}
 		_str+=`
+    volumes:
+      - `+peer.Couchdb.BackupDir+`:/opt/couchdb/data
 `
 		}
 		str+=_str
@@ -378,7 +389,7 @@ func generateZookeeper(dstPath string,config DockerComposeConfig) error {
 version: '2'
 
 services:`
-	innerPorts:=[]string{"2181","2888","3888"}
+	// innerPorts:=[]string{"2181","2888","3888"}
 	for _,zookeeper:=range config.Zookeepers{
 		_str:=`
   `+zookeeper.HostName+`:
@@ -387,12 +398,31 @@ services:`
     image: hyperledger/fabric-zookeeper
     restart: always
     ports:`
+		/*
 		for k,port:=range zookeeper.Ports{
 			_str+=`
       - "`+port+`:`+innerPorts[k]+`"`
 		}
+		 */
+		for _,port:=range zookeeper.Ports{
+			_str+=`
+      - "`+port+`:`+port+`"`
+		}
+		/*
 		_str+=`
-    environment:
+    expose:`
+		for _,port:=range zookeeper.Ports{
+			_str+=`
+      - "`+port+`"`
+		}
+		 */
+		_str+=`
+    environment:`
+		if len(zookeeper.Ports)>0 {
+			_str+=`
+      - ZOO_PORT=`+zookeeper.Ports[0]
+		}
+		_str+=`
       - ZOO_MY_ID=`+zookeeper.ZooMyID+`
       - ZOO_SERVERS=`+zookeeper.ZooServers+`
     extra_hosts:`
@@ -401,6 +431,9 @@ services:`
       - "`+host+`"`
 		}
 		_str+=`
+    volumes:
+      - `+zookeeper.DataBackupDir+`:/data
+      - `+zookeeper.DataLogBackupDir+`:/datalog
 `
 		str+=_str
 	}
@@ -428,7 +461,12 @@ services:`
     hostname: `+kafka.HostName+`
     image: hyperledger/fabric-kafka
     restart: always
-    environment:
+    environment:`
+		if len(kafka.Ports) >0 {
+			_str+=`
+      - KAFKA_PORT=`+kafka.Ports[0]
+		}
+		_str+=`
       - KAFKA_MESSAGE_MAX_BYTES=103809024 # 99 * 1024 * 1024 B
       - KAFKA_REPLICA_FETCH_MAX_BYTES=103809024 # 99 * 1024 * 1024 B
       - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=false
@@ -436,8 +474,11 @@ services:`
       - KAFKA_MIN_INSYNC_REPLICAS=2
       - KAFKA_DEFAULT_REPLICATION_FACTOR=3
       - KAFKA_ZOOKEEPER_CONNECT=`+strings.Join(kafka.Zookeepers,",")+`
-    ports:
-      - "9092:9092"`
+    ports:`
+		for _,port:=range kafka.Ports{
+			_str+=`
+      - "`+port+`:`+port+`"`
+		}
 		_str+=`
     extra_hosts:`
 		for _,host:=range config.Hosts{
@@ -445,6 +486,8 @@ services:`
       - "`+host+`"`
 		}
 		_str+=`
+    volumes:
+      - `+kafka.BackupDir+`:/tmp/kafka-logs
 `
 		str+=_str
 	}

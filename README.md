@@ -100,7 +100,14 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
 
 (a)Copy docker_compose_cfggen.json,docker_compose_cfggen.go,docker_compose_cfggen.sh in fabric_tools to the directory /root/fabric/scripts/fabric-samples/190216/network of each host of A,B,C,D and enter the directory.
 
-(b)Edit docker_compose_cfggen.json on host A as following:
+(b)Create backup directories on host A
+```
+mkdir -p /backup/orderer0/production && chmod -R o+w /backup/orderer0/production
+mkdir -p /backup/zookeeper0/data && chmod -R o+w /backup/zookeeper0/data
+mkdir -p /backup/zookeeper0/datalog && chmod -R o+w /backup/zookeeper0/datalog
+mkdir -p /backup/kafka0/logs && chmod -R o+w /backup/kafka0/logs
+```
+Edit docker_compose_cfggen.json on host A as following:
 ```
 {
   "domain": "house.com",
@@ -114,7 +121,9 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
         "3888" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "1",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper0/data",
+      "data_log_backup_dir": "/backup/zookeeper0/datalog"
     }
   ],
   "kafkas": [
@@ -123,24 +132,29 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
       "broker_id": "0",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9092"
+      ],
+      "backup_dir": "/backup/kafka0/logs"
     }
   ],
   "orderers": [
     {
       "orderer_name": "orderer0",
       "kafka_brokers": [
-        "kafka0",
-        "kafka1",
-        "kafka2",
-        "kafka3"
+        "kafka0:9092",
+        "kafka1:9093",
+        "kafka2:9094",
+        "kafka3:9095"
       ],
       // outer ports
       "ports": [
         "7050" // corresponds to the inner port 7050
-      ]
+      ],
+      "backup_dir": "/backup/orderer0/production"
     }
   ],
   "hosts": [
@@ -161,6 +175,13 @@ It will generate crypto-config files,genesis.block,and auth.tx,cert.tx,credit.tx
     "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
+```
+Create backup directories on host B
+```
+mkdir -p /backup/orderer1/production && chmod -R o+w /backup/orderer1/production
+mkdir -p /backup/zookeeper1/data && chmod -R o+w /backup/zookeeper1/data
+mkdir -p /backup/zookeeper1/datalog && chmod -R o+w /backup/zookeeper1/datalog
+mkdir -p /backup/kafka1/logs && chmod -R o+w /backup/kafka1/logs
 ```
 Edit docker_compose_cfggen.json on host B as following:
 ```
@@ -171,12 +192,14 @@ Edit docker_compose_cfggen.json on host B as following:
       "host_name": "zookeeper1",
       // outer ports
       "ports": [
-        "2181", // The first item corresponds to the inner port 2181
-        "2888", // The second item corresponds to the inner port 2888
-        "3888" // The third item corresponds to the inner port 3888
+        "2182", // The first item corresponds to the inner port 2181
+        "2889", // The second item corresponds to the inner port 2888
+        "3889" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "2",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper1/data",
+      "data_log_backup_dir": "/backup/zookeeper1/datalog"
     }
   ],
   "kafkas": [
@@ -185,24 +208,29 @@ Edit docker_compose_cfggen.json on host B as following:
       "broker_id": "1",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9093"
+      ],
+      "backup_dir": "/backup/kafka1/logs"
     }
   ],
   "orderers": [
     {
       "orderer_name": "orderer1",
       "kafka_brokers": [
-        "kafka0",
-        "kafka1",
-        "kafka2",
-        "kafka3"
+        "kafka0:9092",
+        "kafka1:9093",
+        "kafka2:9094",
+        "kafka3:9095"
       ],
       // outer ports
       "ports": [
         "8050" // corresponds to the inner port 7050
-      ]
+      ],
+      "backup_dir": "/backup/orderer1/production"
     }
   ],
   "hosts": [
@@ -223,6 +251,20 @@ Edit docker_compose_cfggen.json on host B as following:
     "peer1.orgcredit.house.com:139.180.146.33"
   ]
 }
+```
+Create backup directories on host C
+```
+mkdir -p /backup/OrgAuth/peer0/production && chmod -R o+w /backup/OrgAuth/peer0/production
+mkdir -p /backup/OrgAuth/couchdb0/data && chmod -R o+w /backup/OrgAuth/couchdb0/data
+mkdir -p /backup/OrgAuth/peer1/production && chmod -R o+w /backup/OrgAuth/peer1/production
+mkdir -p /backup/OrgAuth/couchdb1/data && chmod -R o+w /backup/OrgAuth/couchdb1/data
+mkdir -p /backup/OrgCert/peer0/production && chmod -R o+w /backup/OrgCert/peer0/production
+mkdir -p /backup/OrgCert/couchdb0/data && chmod -R o+w /backup/OrgCert/couchdb0/data
+mkdir -p /backup/OrgCert/peer1/production && chmod -R o+w /backup/OrgCert/peer1/production
+mkdir -p /backup/OrgCert/couchdb1/data && chmod -R o+w /backup/OrgCert/couchdb1/data
+mkdir -p /backup/zookeeper2/data && chmod -R o+w /backup/zookeeper2/data
+mkdir -p /backup/zookeeper2/datalog && chmod -R o+w /backup/zookeeper2/datalog
+mkdir -p /backup/kafka2/logs && chmod -R o+w /backup/kafka2/logs
 ```
 Edit docker_compose_cfggen.json on host C as following:
 ```
@@ -253,12 +295,14 @@ Edit docker_compose_cfggen.json on host C as following:
       "host_name": "zookeeper2",
       // outer ports
       "ports": [
-        "2181", // The first item corresponds to the inner port 2181
-        "2888", // The second item corresponds to the inner port 2888
-        "3888" // The third item corresponds to the inner port 3888
+        "2183", // The first item corresponds to the inner port 2181
+        "2890", // The second item corresponds to the inner port 2888
+        "3890" // The third item corresponds to the inner port 3888
       ],
       "zoo_my_id": "3",
-      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888"
+      "zoo_servers": "server.1=zookeeper0:2888:3888 server.2=zookeeper1:2889:3889 server.3=zookeeper2:2890:3890",
+      "data_backup_dir": "/backup/zookeeper2/data",
+      "data_log_backup_dir": "/backup/zookeeper2/datalog"
     }
   ],
   "kafkas": [
@@ -267,9 +311,13 @@ Edit docker_compose_cfggen.json on host C as following:
       "broker_id": "2",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9094"
+      ],
+      "backup_dir": "/backup/kafka2/logs"
     }
   ],
   "peers": [
@@ -287,8 +335,10 @@ Edit docker_compose_cfggen.json on host C as following:
         // outer ports
         "ports": [
           "5984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgAuth/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgAuth/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -304,8 +354,10 @@ Edit docker_compose_cfggen.json on host C as following:
         // outer ports
         "ports": [
           "6984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgAuth/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgAuth/peer1/production"
     },
     {
       "peer_name": "peer0",
@@ -321,8 +373,10 @@ Edit docker_compose_cfggen.json on host C as following:
         // outer ports
         "ports": [
           "7984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCert/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgCert/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -338,8 +392,10 @@ Edit docker_compose_cfggen.json on host C as following:
         // outer ports
         "ports": [
           "8984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCert/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgCert/peer1/production"
     }
   ],
   "clis": [
@@ -374,6 +430,14 @@ Edit docker_compose_cfggen.json on host C as following:
   ]
 }
 ```
+Create backup directories on host D
+```
+mkdir -p /backup/OrgCredit/peer0/production && chmod -R o+w /backup/OrgCredit/peer0/production
+mkdir -p /backup/OrgCredit/couchdb0/data && chmod -R o+w /backup/OrgCredit/couchdb0/data
+mkdir -p /backup/OrgCredit/peer1/production && chmod -R o+w /backup/OrgCredit/peer1/production
+mkdir -p /backup/OrgCredit/couchdb1/data && chmod -R o+w /backup/OrgCredit/couchdb1/data
+mkdir -p /backup/kafka3/logs && chmod -R o+w /backup/kafka3/logs
+```
 Edit docker_compose_cfggen.json on host D as following:
 ```
 {
@@ -395,9 +459,13 @@ Edit docker_compose_cfggen.json on host D as following:
       "broker_id": "3",
       "zookeepers": [
         "zookeeper0:2181",
-        "zookeeper1:2181",
-        "zookeeper2:2181"
-      ]
+        "zookeeper1:2182",
+        "zookeeper2:2183"
+      ],
+      "ports": [
+        "9095"
+      ],
+      "backup_dir": "/backup/kafka3/logs"
     }
   ],
   "peers": [
@@ -415,8 +483,10 @@ Edit docker_compose_cfggen.json on host D as following:
         // outer ports
         "ports": [
           "9984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCredit/couchdb0/data"
+      },
+      "backup_dir": "/backup/OrgCredit/peer0/production"
     },
     {
       "peer_name": "peer1",
@@ -432,8 +502,10 @@ Edit docker_compose_cfggen.json on host D as following:
         // outer ports
         "ports": [
           "10984" // corresponds to the inner port 5984
-        ]
-      }
+        ],
+        "backup_dir": "/backup/OrgCredit/couchdb1/data"
+      },
+      "backup_dir": "/backup/OrgCredit/peer1/production"
     }
   ],
   "hosts": [
